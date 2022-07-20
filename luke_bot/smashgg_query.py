@@ -4,7 +4,7 @@ import requests
 from datetime import datetime
 
 token = os.getenv('API_TOKEN')
-headers = {'authorization': f'Bearer {token} '}
+headers = {'Authorization': f'Bearer {token}'}
 
 # Luke's Start GG Info
 # Slug (changes with the tag)
@@ -29,7 +29,8 @@ def get_gamer_tag() -> str:
     '''
 
     raw_response = requests.post(endpoint, json={'query': query, 'variables': {'id': ID}}, headers=headers)
-    tag = raw_response.json()['data']['user']['player']['gamerTag']
+    json = raw_response.json()
+    tag = json['data']['user']['player']['gamerTag']
     return tag
 
 
@@ -135,7 +136,3 @@ def check_luke():
     results += f"Upcoming {len(upcoming)} Tournaments - \n"
     results += process_upcoming(upcoming)
     return results
-
-
-if __name__ == "__main__":
-    print(check_luke())
