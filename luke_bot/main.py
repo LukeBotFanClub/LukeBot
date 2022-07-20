@@ -1,7 +1,7 @@
 import os
 import time
 
-from luke_bot.discord_bot import bot
+from luke_bot.discord_bot import bot, send_to_luke_updates
 from luke_bot.smashgg_query import check_luke
 
 
@@ -12,7 +12,7 @@ def main():
         bot.loop.run_until_complete(bot.start(discord_token))
         query = check_luke()
         if query:
-            luke_updates = bot.get_channel(989598751821811712)
+            # send_to_luke_updates(query)
             print(query)
             time.sleep(60)
     except KeyboardInterrupt:
