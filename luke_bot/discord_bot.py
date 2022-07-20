@@ -1,6 +1,3 @@
-from typing import Optional
-
-from discord import TextChannel
 from discord.ext import commands, tasks
 
 from luke_bot.smashgg_query import check_luke
@@ -12,6 +9,18 @@ bot = commands.Bot(command_prefix='!')
 async def about(ctx):
     text = 'I report updates on Luke'
     await ctx.send(text)
+
+
+def same_update(update1: str, update2: str) -> bool:
+    lines1 = update1.splitlines()
+    lines2 = update2.splitlines()
+    if len(lines1) != len(lines2):
+        return False
+    for line1, line2 in zip(lines1, lines2):
+        if not line1.startswith('Begins in'):
+            if line1 != line2:
+                return False
+    return True
 
 
 class LukeUpdates(commands.Cog):
@@ -27,13 +36,11 @@ class LukeUpdates(commands.Cog):
 
     @tasks.loop(seconds=30)
     async def send_to_luke_updates(self):
-        print('looping')
         text = check_luke()
         if text:
-            print('got text')
             if self.luke_updates_channel is None:
                 self.luke_updates_channel = await self.bot.fetch_channel(self.channel_id)
-            if self.luke_updates_channel is not None and text != self.most_recent_update:
+            if self.luke_updates_channel is not None and not same_update(text, self.most_recent_update):
                 self.most_recent_update = text
                 await self.luke_updates_channel.send(text)
 
