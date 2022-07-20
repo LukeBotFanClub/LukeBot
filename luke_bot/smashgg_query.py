@@ -14,8 +14,8 @@ ID = 1116942
 endpoint = "https://api.start.gg/gql/alpha"
 
 
-def get_gamer_tag():
-    # Fetches Luke's current Start.GG Epic Gamer Tag
+def get_gamer_tag() -> str:
+    """Fetches Luke's current Start.GG Epic Gamer Tag"""
     query = '''
     query Luke($id: ID){
     user(id: $id){
@@ -33,8 +33,8 @@ def get_gamer_tag():
     return tag
 
 
-def last_result(num_results):
-    #  Returns the last N results from Luke's profile
+def get_last_result(num_results: int, gamertag: str):
+    """Returns the last N results from Luke's profile"""
     query = '''
     query LastResult($id: ID){
     user(id: $id){
@@ -68,13 +68,13 @@ def last_result(num_results):
         }
     }
     }
-    ''' % (num_results, num_results, GAMERTAG)
+    ''' % (num_results, num_results, gamertag)
     raw_response = requests.post(endpoint, json={'query': query, 'variables': {'id': ID}}, headers=headers)
     response = raw_response.json()
     return response['data']['user']['events']['nodes']
 
 
-def upcoming_tournaments():
+def get_upcoming_tournaments():
     query = '''
     query Upcoming($id: ID){
     user(id: $id){
@@ -102,32 +102,40 @@ def upcoming_tournaments():
 
 def process_results(response):
     """Processes list of Finalised Tournament Objects into a readable Format"""
+    results = ""
     for event in response:
-        print("Tournament - ", event['tournament']['name'])
-        print("PROGRESS : ", event['state'])
-        print(
-            "Placement : %d in %d " % (event['standings']['nodes'][0]['placement'],
-                                       event['numEntrants'])
-        )
+        results += f"Tournament - {event['tournament']['name']}\n"
+        results += f"PROGRESS : {event['state']}\n"
+        placing = event['standings']['nodes'][0]['placement']
+        results += f"Placement : {placing} in {event['numEntrants']}\n"
+
+    return results
 
 
 def process_upcoming(response):
-    # Processes list of Upcoming Tournament Objects into
-    # a readable format
+    """Processes list of Upcoming Tournament Objects into a readable format"""
+    results = ""
     for event in response:
-        print("Tournament - ", event['name'])
+        results += f"Tournament - {event['name']}\n"
         ts = event['startAt']
         td = datetime.utcfromtimestamp(ts) - datetime.now()
         days, hours, minutes = td.days, td.seconds // 3600, td.seconds // 60 % 60
-        print("Begins in %d days, %d hours, %d minutes" % (days, hours, minutes))
+        results += f"Begins in {days} days, {hours} hours, {minutes} minutes\n"
+    return results
+
+
+def check_luke():
+    results = ""
+    gamertag = get_gamer_tag()
+    last_result = get_last_result(1, gamertag)
+    upcoming = get_upcoming_tournaments()
+    results += f"Current Luke Tag - {gamertag}\n"
+    results += "Last Result:\n"
+    results += process_results(last_result)
+    results += f"Upcoming {len(upcoming)} Tournaments - \n"
+    results += process_upcoming(upcoming)
+    return results
 
 
 if __name__ == "__main__":
-    GAMERTAG = get_gamer_tag()
-    LAST_RESULT = last_result(1)
-    UPCOMING = upcoming_tournaments()
-    print("Current Luke Tag - ", GAMERTAG)
-    print("Last Result:")
-    process_results(LAST_RESULT)
-    print(f"Upcoming {len(UPCOMING)} Tournaments - ")
-    process_upcoming(UPCOMING)
+    print(check_luke())
