@@ -47,6 +47,7 @@ def get_last_result(num_results: int, gamertag: str):
             tournament {
               name
               id
+              shortSlug
             }
             name
             numEntrants
@@ -75,7 +76,7 @@ def get_last_result(num_results: int, gamertag: str):
     return response['data']['user']['events']['nodes']
 
 
-def get_upcoming_tournaments():
+def get_upcoming_tournaments(gamertag: str):
     query = '''
     query Upcoming($id: ID){
     user(id: $id){
@@ -89,8 +90,18 @@ def get_upcoming_tournaments():
             nodes{
                 name
                 id
+                shortSlug
                 startAt
                 state
+                events(limit:3){
+                  id
+                  name
+                  entrants(query:filter:{name:"%s"}}){
+                    nodes{
+                      id
+                    }
+                  }
+                }
             }
         }
     }
@@ -105,10 +116,10 @@ def process_results(response):
     """Processes list of Finalised Tournament Objects into a readable Format"""
     results = ""
     for event in response:
-        results += f"Tournament - {event['tournament']['name']}\n"
-        results += f"PROGRESS : {event['state']}\n"
+        results += f"Tournament - `{event['tournament']['name']}` - [Start.GG]((https://start.gg/{event['tournament']['shortSlug']}))\n"
+        results += f"PROGRESS : `{event['state']}`\n"
         placing = event['standings']['nodes'][0]['placement']
-        results += f"Placement : {placing} in {event['numEntrants']}\n"
+        results += f"Placement : `{placing}` in `{event['numEntrants']}`\n\n"
 
     return results
 
@@ -117,22 +128,65 @@ def process_upcoming(response):
     """Processes list of Upcoming Tournament Objects into a readable format"""
     results = ""
     for event in response:
-        results += f"Tournament - {event['name']}\n"
-        ts = event['startAt']
-        td = datetime.utcfromtimestamp(ts) - datetime.now()
+        results += f"Tournament - `{event['name']}` - [Start.GG](https://start.gg/{event['shortSlug']})\n"
+        ts = datetime.utcfromtimestamp(event['startAt'])
+        td = ts - datetime.now()
         days, hours, minutes = td.days, td.seconds // 3600, td.seconds // 60 % 60
-        results += f"Begins in {days} days, {hours} hours, {minutes} minutes\n"
+        if ts < datetime.now():
+            results += f"Started `{days}` days, `{hours}` hours, `{minutes}` minutes ago\n"
+            event_id = event['id']
+            entrant_id = -1
+            for events in event['events']:
+                if 'single' in events['name'].lower():
+                    entrant_id = events['entrants']['nodes'][0]['id']
+            set_scores = ongoing_results(event_id, entrant_id)
+            results += "Set Scores -\n"
+            for set_result in set_scores:
+                results += f"`{set_result['fullRoundText']}` -\n"
+                if set_result['displayScore']:
+                results += f"{set_result['displayScore']}\n"
+ 
+        else:
+            results += f"Begins in `{days}` days, `{hours}` hours, `{minutes}` minutes\n"
     return results
 
+def ongoing_results(event_id: int, entrant_id: int):
+    query = '''
+    query InProgressResults($event_id: ID, $entrant_id: ID){
+    event(id: $event_id){
+        tournament{
+            name
+        }
+        name
+        sets(filters:{entrantIds:[$entrant_id]}){
+            nodes{
+                fullRoundText
+                displayScore
+                slots{
+                    entrant{
+                        id
+                        name
+                    }
+                }
+            }
+        }
+        
+        }
+    }
+    '''
+    raw_response = requests.post(endpoint, json={'query': query, 'variables': {'event_id': event_id, 'entrant_id': entrant_id}}, headers=headers)
+    response = raw_response.json()
+    current_results = response['data']['event']['sets']['nodes'][::-1]
+    return current_results
 
 def check_luke():
     results = ""
     gamertag = get_gamer_tag()
     last_result = get_last_result(1, gamertag)
-    upcoming = get_upcoming_tournaments()
-    results += f"Current Luke Tag - {gamertag}\n"
+    upcoming = get_upcoming_tournaments(gamertag)
+    results += f"**Current Luke Tag** - `{gamertag}`\n"
     results += "Last Result:\n"
     results += process_results(last_result)
-    results += f"Upcoming {len(upcoming)} Tournaments - \n"
+    results += f"Upcoming `{len(upcoming)}` Tournaments - \n"
     results += process_upcoming(upcoming)
     return results

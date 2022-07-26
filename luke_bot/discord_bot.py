@@ -42,7 +42,9 @@ class LukeUpdates(commands.Cog):
                 self.luke_updates_channel = await self.bot.fetch_channel(self.channel_id)
             if self.luke_updates_channel is not None and not same_update(text, self.most_recent_update):
                 self.most_recent_update = text
-                await self.luke_updates_channel.send(text)
+                embed = discord.Embed()
+                embed.description = self.most_recent_update
+                await self.luke_updates_channel.send(embed=embed)
 
 
 bot.add_cog(LukeUpdates(bot))
