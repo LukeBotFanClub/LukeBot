@@ -1,3 +1,5 @@
+import os
+
 from discord.ext import commands, tasks
 
 from luke_bot.smashgg_query import check_luke
@@ -26,7 +28,7 @@ def same_update(update1: str, update2: str) -> bool:
 class LukeUpdates(commands.Cog):
     def __init__(self, bot_):
         self.bot = bot_
-        self.channel_id: int = 989598751821811712
+        self.channel_id: int = int(os.getenv('DISCORD_CHANNEL_ID'))
         self.most_recent_update: str = ''
         self.luke_updates_channel = None
         self.send_to_luke_updates.start()

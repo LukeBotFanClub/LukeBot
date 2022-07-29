@@ -3,7 +3,7 @@ import os
 import requests
 from datetime import datetime
 
-token = os.getenv('API_TOKEN')
+token = os.getenv('GG_TOKEN')
 headers = {'Authorization': f'Bearer {token}'}
 
 # Luke's Start GG Info
