@@ -36,7 +36,7 @@ class LukeUpdates(commands.Cog):
     def cog_unload(self):
         self.send_to_luke_updates.cancel()
 
-    @tasks.loop(seconds=30)
+    @tasks.loop(seconds=int(os.getenv('BOT_POLLING_PERIOD', 30)))
     async def send_to_luke_updates(self):
         text = check_luke()
         if text:
