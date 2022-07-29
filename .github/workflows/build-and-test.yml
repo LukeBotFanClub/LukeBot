@@ -7,7 +7,7 @@ env:
   IMAGE_NAME: "${{ github.repository }}:${{ github.sha }}"
 
 jobs:
-  build-and-push-image:
+  build:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -41,8 +41,7 @@ jobs:
   test:
     needs: build
     runs-on: ubuntu-latest
-    container:
-      image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+    container: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
     steps:
       - uses: actions/checkout@v3
