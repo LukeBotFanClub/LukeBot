@@ -41,19 +41,15 @@ jobs:
   test:
     needs: build
     runs-on: ubuntu-latest
-    container: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+    permissions:
+      packages: read
+    container: "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
 
     steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install flake8 pytest
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Lint with flake8
         run: |
           # stop the build if there are Python syntax errors or undefined names
@@ -69,7 +65,6 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     permissions:
-      contents: read
       packages: write
 
     steps:
