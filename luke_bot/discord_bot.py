@@ -17,14 +17,19 @@ class BotInfo(commands.Cog):
 
 
 def same_update(update1: str, update2: str) -> bool:
+    """Checks if 2 blocks of update text contain the same information"""
     lines1 = update1.splitlines()
     lines2 = update2.splitlines()
     if len(lines1) != len(lines2):
+        # Different number of lines means definitely different
         return False
     for line1, line2 in zip(lines1, lines2):
-        if not line1.startswith(('Begins in', 'Started')):
-            if line1 != line2:
-                return False
+        # Loop through corresponding lines, skipping the ones with relative time in them
+        if line1.startswith(('Begins in', 'Started')):
+            continue
+        if line1 != line2:
+            return False
+    # Only True if all lines are the same
     return True
 
 
