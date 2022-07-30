@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-from luke_bot.discord_bot import bot  # noqa
+from luke_bot.discord_bot import get_luke_bot  # noqa
 
 
 def main():
@@ -13,4 +13,5 @@ def main():
             raise RuntimeError(f'Environment variable {var} not set.')
 
     discord_token = os.getenv('DISCORD_TOKEN')
+    bot = get_luke_bot()
     bot.run(discord_token)

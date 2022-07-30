@@ -5,13 +5,15 @@ from discord.ext import commands, tasks
 
 from luke_bot.smashgg_query import check_luke
 
-bot = commands.Bot(command_prefix='!')
 
+class BotInfo(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
 
-@bot.command('about')
-async def about(ctx):
-    text = 'I report updates on Luke'
-    await ctx.send(text)
+    @commands.command('about')
+    async def about(self, ctx):
+        text = 'I report updates on Luke'
+        await ctx.send(text)
 
 
 def same_update(update1: str, update2: str) -> bool:
@@ -27,8 +29,8 @@ def same_update(update1: str, update2: str) -> bool:
 
 
 class LukeUpdates(commands.Cog):
-    def __init__(self, bot_):
-        self.bot = bot_
+    def __init__(self, bot):
+        self.bot = bot
         self.channel_id: int = int(os.getenv('DISCORD_CHANNEL_ID'))
         self.most_recent_update: str = ''
         self.luke_updates_channel = None
@@ -50,4 +52,8 @@ class LukeUpdates(commands.Cog):
                 await self.luke_updates_channel.send(embed=embed)
 
 
-bot.add_cog(LukeUpdates(bot))
+def get_luke_bot(command_prefix: str = '!') -> commands.Bot:
+    bot = commands.Bot(command_prefix=command_prefix)
+    bot.add_cog(LukeUpdates(bot))
+    bot.add_cog(BotInfo(bot))
+    return bot

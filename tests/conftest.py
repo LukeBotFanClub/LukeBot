@@ -4,13 +4,14 @@ import os
 import pytest
 import discord.ext.test as dpytest
 
-from luke_bot.discord_bot import bot
+from luke_bot.discord_bot import get_luke_bot
 
 
 @pytest.fixture
-def bot_(event_loop):
-    dpytest.configure(bot)
-    return bot
+def bot(event_loop):
+    bot_ = get_luke_bot()
+    dpytest.configure(bot_)
+    return bot_
 
 
 def pytest_sessionfinish():

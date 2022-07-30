@@ -48,6 +48,6 @@ def test_same_update():
 
 
 @pytest.mark.asyncio
-async def test_send_to_luke_updates(bot_):
+async def test_send_to_luke_updates(bot):
     # await dpytest.message("testing")
     assert True
