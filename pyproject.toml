@@ -6,6 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "LukeBot"
+dynamic = ["version"]
 authors = [
   { name="Exlot", email="author@example.com" }, { name="Charlie Wilson", email="charles.ep.wilson@gmail.com" },
 ]
