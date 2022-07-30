@@ -41,7 +41,7 @@ jobs:
     permissions:
       packages: read
     container: 
-      image: "ghcr.io/${{ github.repository }}:${{ github.sha }}"
+      image: "ghcr.io/${{ github.repository }}:sha-${{ github.sha }}"
       env:
         GG_TOKEN: ${{ secrets.TEST_GG_TOKEN }}
         DISCORD_TOKEN: ${{ secrets.TEST_DISCORD_TOKEN }}
