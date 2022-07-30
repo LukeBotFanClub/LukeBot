@@ -1,5 +1,6 @@
 import os
 
+import discord
 from discord.ext import commands, tasks
 
 from luke_bot.smashgg_query import check_luke
@@ -19,7 +20,7 @@ def same_update(update1: str, update2: str) -> bool:
     if len(lines1) != len(lines2):
         return False
     for line1, line2 in zip(lines1, lines2):
-        if not line1.startswith('Begins in'):
+        if not line1.startswith(('Begins in', 'Started')):
             if line1 != line2:
                 return False
     return True

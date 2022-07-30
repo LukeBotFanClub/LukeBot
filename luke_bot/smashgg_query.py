@@ -1,7 +1,7 @@
 import os
 
 import requests
-from datetime import datetime
+from datetime import datetime, timedelta
 
 token = os.getenv('GG_TOKEN')
 headers = {'Authorization': f'Bearer {token}'}
@@ -76,7 +76,7 @@ def get_last_result(num_results: int, gamertag: str):
     return response['data']['user']['events']['nodes']
 
 
-def get_upcoming_tournaments(gamertag: str):
+def get_upcoming_tournaments(id_: int, gamertag: str):
     query = '''
     query Upcoming($id: ID){
     user(id: $id){
@@ -96,7 +96,7 @@ def get_upcoming_tournaments(gamertag: str):
                 events(limit:3){
                   id
                   name
-                  entrants(query:filter:{name:"%s"}}){
+                  entrants(query:{filter:{name:"%s"}}){
                     nodes{
                       id
                     }
@@ -106,8 +106,8 @@ def get_upcoming_tournaments(gamertag: str):
         }
     }
     }
-    '''
-    raw_response = requests.post(endpoint, json={'query': query, 'variables': {'id': ID}}, headers=headers)
+    ''' % gamertag
+    raw_response = requests.post(endpoint, json={'query': query, 'variables': {'id': id_}}, headers=headers)
     response = raw_response.json()
     return response['data']['user']['tournaments']['nodes'][::-1]
 
@@ -116,7 +116,12 @@ def process_results(response):
     """Processes list of Finalised Tournament Objects into a readable Format"""
     results = ""
     for event in response:
-        results += f"Tournament - `{event['tournament']['name']}` - [Start.GG]((https://start.gg/{event['tournament']['shortSlug']}))\n"
+        results += f"Tournament - `{event['tournament']['name']}`"
+        slug = event['tournament']['shortSlug']
+        if slug:
+            results += f" - [Start.GG]((https://start.gg/{event['tournament']['shortSlug']}))"
+        results += "\n"
+
         results += f"PROGRESS : `{event['state']}`\n"
         placing = event['standings']['nodes'][0]['placement']
         results += f"Placement : `{placing}` in `{event['numEntrants']}`\n\n"
@@ -128,27 +133,34 @@ def process_upcoming(response):
     """Processes list of Upcoming Tournament Objects into a readable format"""
     results = ""
     for event in response:
-        results += f"Tournament - `{event['name']}` - [Start.GG](https://start.gg/{event['shortSlug']})\n"
-        ts = datetime.utcfromtimestamp(event['startAt'])
-        td = ts - datetime.now()
-        days, hours, minutes = td.days, td.seconds // 3600, td.seconds // 60 % 60
-        if ts < datetime.now():
-            results += f"Started `{days}` days, `{hours}` hours, `{minutes}` minutes ago\n"
+        results += f"Tournament - `{event['name']}`"
+        slug = event['shortSlug']
+        if slug:
+            results += f" - [Start.GG](https://start.gg/{event['shortSlug']})"
+        results += "\n"
+        event_start = datetime.utcfromtimestamp(event['startAt'])
+        event_starts_in = event_start - datetime.utcnow()
+        days, hours, minutes = event_starts_in.days, event_starts_in.seconds // 3600, event_starts_in.seconds // 60 % 60
+        if event_starts_in < timedelta():
+            results += f"Started `{abs(days)}` days, `{hours}` hours, `{minutes}` minutes ago\n"
             event_id = event['id']
             entrant_id = -1
             for events in event['events']:
-                if 'single' in events['name'].lower():
+                if 'single' in events['name'].lower() and events['entrants']['nodes']:
                     entrant_id = events['entrants']['nodes'][0]['id']
+                    event_id = events['id']
+                    break
             set_scores = ongoing_results(event_id, entrant_id)
             results += "Set Scores -\n"
             for set_result in set_scores:
                 results += f"`{set_result['fullRoundText']}` -\n"
                 if set_result['displayScore']:
-                results += f"{set_result['displayScore']}\n"
- 
+                    results += f"{set_result['displayScore']}\n"
+
         else:
             results += f"Begins in `{days}` days, `{hours}` hours, `{minutes}` minutes\n"
     return results
+
 
 def ongoing_results(event_id: int, entrant_id: int):
     query = '''
@@ -174,16 +186,23 @@ def ongoing_results(event_id: int, entrant_id: int):
         }
     }
     '''
-    raw_response = requests.post(endpoint, json={'query': query, 'variables': {'event_id': event_id, 'entrant_id': entrant_id}}, headers=headers)
+    raw_response = requests.post(
+        endpoint, json={'query': query, 'variables': {'event_id': event_id, 'entrant_id': entrant_id}}, headers=headers
+    )
     response = raw_response.json()
-    current_results = response['data']['event']['sets']['nodes'][::-1]
+    event = response['data']['event']
+    if event is not None:
+        current_results = event['sets']['nodes'][::-1]
+    else:
+        current_results = []
     return current_results
+
 
 def check_luke():
     results = ""
     gamertag = get_gamer_tag()
     last_result = get_last_result(1, gamertag)
-    upcoming = get_upcoming_tournaments(gamertag)
+    upcoming = get_upcoming_tournaments(ID, gamertag)
     results += f"**Current Luke Tag** - `{gamertag}`\n"
     results += "Last Result:\n"
     results += process_results(last_result)
