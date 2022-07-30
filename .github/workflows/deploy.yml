@@ -1,4 +1,4 @@
-name: Release
+name: Deploy
 
 on:
   pull_request:
@@ -17,4 +17,10 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - run: docker run
+      - run: docker pull ghcr.io/tolxe/lukebot:latest
+      - run: >
+          docker run -d  
+          -e "GG_TOKEN=${{ secrets.PROD_GG_TOKEN }}" 
+          -e "DISCORD_TOKEN=${{ secrets.PROD_DISCORD_TOKEN }}"
+          -e "DISCORD_CHANNEL_ID=${{ secrets.PROD_DISCORD_CHANNEL_ID }}"
+          ghcr.io/tolxe/lukebot:latest
