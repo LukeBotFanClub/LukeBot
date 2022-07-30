@@ -1,6 +1,6 @@
 FROM python:3.10-slim
 
-RUN apt-get install -y git # apk add git
+RUN apt-get update && apt-get upgrade && apt-get install -y git
 
 COPY . .
 
