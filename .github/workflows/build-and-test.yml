@@ -43,7 +43,12 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       packages: read
-    container: "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
+    container: 
+      image: "ghcr.io/${{ github.repository }}:${{ github.sha }}"
+      env:
+        GG_TOKEN: ${{ secrets.TEST_GG_TOKEN }}
+        DISCORD_TOKEN: ${{ secrets.TEST_DISCORD_TOKEN }}
+        DISCORD_CHANNEL_ID: ${{ secrets.TEST_DISCORD_CHANNEL_ID }}
 
     steps:
       - name: Install dependencies
