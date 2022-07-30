@@ -41,7 +41,7 @@ jobs:
     permissions:
       packages: read
     container: 
-      image: "ghcr.io/lukebot:sha-${{ github.sha }}"
+      image: "ghcr.io/tolxe/lukebot:sha-${{ github.sha }}"
       env:
         GG_TOKEN: ${{ secrets.TEST_GG_TOKEN }}
         DISCORD_TOKEN: ${{ secrets.TEST_DISCORD_TOKEN }}
