@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=61.0", "setuptools_scm[toml]>=6.2", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+
+[project]
+name = "LukeBot"
+authors = [
+  { name="Exlot", email="author@example.com" }, { name="Charlie Wilson", email="charles.ep.wilson@gmail.com" },
+]
+description = "Discord bot for posting Luke updates"
+readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Development Status :: 4 - Beta",
+    "Framework :: Pytest",
+    "Natural Language :: English",
+    "Topic :: Games/Entertainment",
+]
+dependencies = [
+    "python-dotenv~=0.20.0",
+    "requests~=2.28.1",
+]
+[project.optional-dependencies]
+test = [
+  "pytest~=7.1.2",
+  "dpytest~=0.5.3",
+  "flake8~=4.0.1",
+]
+
+
+[project.urls]
+"Homepage" = "https://github.com/tolxe/LukeBot"
+"repository" = "https://github.com/tolxe/LukeBot"
+"Bug Tracker" = "https://github.com/tolxe/LukeBot/issues"
+
+[project.scripts]
+start-lukebot = "luke_bot.main:main"

@@ -1,6 +1,8 @@
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
-from luke_bot.discord_bot import bot
+from luke_bot.discord_bot import bot  # noqa
 
 
 def main():
