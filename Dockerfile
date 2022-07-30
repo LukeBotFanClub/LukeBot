@@ -1,7 +1,7 @@
 FROM python:3.10-slim
 
 RUN apt-get update && apt-get upgrade
-RUN apt-get install -y git python3-dev
+RUN apt-get install -y git
 
 COPY . .
 
