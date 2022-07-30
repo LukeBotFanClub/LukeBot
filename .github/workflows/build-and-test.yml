@@ -41,7 +41,7 @@ jobs:
     permissions:
       packages: read
     container: 
-      image: "ghcr.io/${{ github.repository }}:sha-${{ github.sha }}"
+      image: "ghcr.io/lukebot:sha-${{ github.sha }}"
       env:
         GG_TOKEN: ${{ secrets.TEST_GG_TOKEN }}
         DISCORD_TOKEN: ${{ secrets.TEST_DISCORD_TOKEN }}
@@ -51,7 +51,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install flake8 pytest
+          pip install flake8 pytest dpytest
       - name: Lint with flake8
         run: |
           # stop the build if there are Python syntax errors or undefined names
