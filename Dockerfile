@@ -6,6 +6,6 @@ RUN apt-get install -y git python3-dev
 COPY . .
 
 RUN python3 -m pip install --upgrade pip
-RUN python3 -m pip install .
+RUN python3 -vv -m pip install .
 
 CMD start-lukebot
