@@ -6,6 +6,6 @@ RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-
 
 COPY . .
 
-RUN /root/.local/bin/poetry install --no-dev
+RUN $HOME/.poetry/bin/poetry install --no-dev
 
 CMD start-lukebot

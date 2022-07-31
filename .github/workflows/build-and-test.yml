@@ -20,7 +20,10 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
         with:
-            buildkitd-flags: --platform "linux/arm64,linux/arm/v7"
+            config-inline: |
+              debug = true
+              [worker.oci]
+                platforms = [ "linux/amd64", "linux/arm/v7" ]
         
 #      - name: Cache Docker layers
 #        uses: actions/cache@v2
@@ -80,7 +83,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install dev dependencies
-        run: /root/.local/bin/poetry install && /root/.local/bin/poetry show
+        run: $HOME/.poetry/bin/poetry install && $HOME/.poetry/bin/poetry show
 
       - name: Lint with flake8
         run: |
