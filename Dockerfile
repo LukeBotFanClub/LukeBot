@@ -1,7 +1,7 @@
-FROM python:3.10-alpine
+FROM ubuntu:20.04
 
-RUN apk update && apk upgrade
-RUN apk add -f git
+RUN apt-get update && apt-get upgrade
+RUN apt-get install -y git python3.10 python3-pip
 
 COPY . .
 
