@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-from luke_bot.discord_bot import get_luke_bot  # noqa
+from .discord_bot import get_luke_bot  # noqa
 
 
 def main():

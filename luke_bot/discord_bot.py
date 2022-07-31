@@ -3,7 +3,7 @@ import os
 import discord
 from discord.ext import commands, tasks
 
-from luke_bot.smashgg_query import check_luke
+from .smashgg_query import check_luke
 
 
 class BotInfo(commands.Cog):
