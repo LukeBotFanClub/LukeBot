@@ -8,11 +8,11 @@ vcs = "git"
 dirty = true
 metadata = true
 
-[project]
+[tool.poetry]
 name = "lukebot"
-version = ["0.0.0"]
+version = "0.0.0"
 authors = [
-  { name="Exlot", email="author@example.com" }, { name="Charlie Wilson", email="charles.ep.wilson@gmail.com" },
+  "Exlot <author@example.com>" , "Charlie Wilson <charles.ep.wilson@gmail.com>",
 ]
 description = "Discord bot for posting Luke updates"
 readme = "README.md"
@@ -25,42 +25,25 @@ classifiers = [
     "Natural Language :: English",
     "Topic :: Games/Entertainment",
 ]
-dependencies = [
-    "python-dotenv~=0.20.0",
-    "requests~=2.28.1",
-    "discord.py~=1.6.0",
-]
+
 [tool.poetry.dependencies]
 requests = "~2.28.1"
 python-dotenv="~0.20.0"
-discord.py="~1.6.0"
+"discord.py"="~1.6.0"
 
-[project.optional-dependencies]
+[project.dev-dependencies]
 test = [
   "pytest~=7.1.2",
   "dpytest~=0.5.3",
   "flake8~=4.0.1",
 ]
-[tool.poetry.extras]
-test = [
-  "pytest",
-  "dpytest",
-  "flake8",
-]
-
-[project.urls]
-"Homepage" = "https://github.com/tolxe/LukeBot"
-"repository" = "https://github.com/tolxe/LukeBot"
-"Bug Tracker" = "https://github.com/tolxe/LukeBot/issues"
 
 [tool.poetry.urls]
 "Homepage" = "https://github.com/tolxe/LukeBot"
 "repository" = "https://github.com/tolxe/LukeBot"
 "Bug Tracker" = "https://github.com/tolxe/LukeBot/issues"
 
-[project.scripts]
-start-lukebot = "luke_bot.main:main"
-[poetry.scripts]
+[tool.poetry.scripts]
 start-lukebot = "luke_bot.main:main"
 
 
