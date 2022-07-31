@@ -77,6 +77,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Install dev dependencies
+        run: /root/.local/bin/poetry install && /root/.local/bin/poetry show
+
       - name: Lint with flake8
         run: |
           # stop the build if there are Python syntax errors or undefined names
