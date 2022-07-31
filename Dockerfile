@@ -1,7 +1,7 @@
-FROM ubuntu:20.04
+FROM python:3.10
 
 RUN apt-get update && apt-get -y upgrade
-RUN apt-get install -y git python3.10 python3-pip
+RUN apt-get install -y git
 
 COPY . .
 
