@@ -1,7 +1,7 @@
-FROM python:3.10-alpine
+FROM python:3.10-slim
 
-RUN apk update && apk upgrade
-RUN apk add git
+RUN apt-get update && apt-get -y upgrade
+RUN apt-get install -y git
 
 COPY . .
 
