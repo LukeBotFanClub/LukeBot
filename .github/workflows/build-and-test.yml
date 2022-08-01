@@ -82,7 +82,7 @@ jobs:
         run: /root/.poetry/bin/poetry install && /root/.poetry/bin/poetry show
 
       - name: Lint with flake8
-        run: pflake8 . --count --show-source --statistics
+        run: /root/.poetry/bin/poetry run pflake8 . --count --show-source --statistics
       - name: Type checking with mypy
         run: mypy luke_bot
       - name: Test with pytest
