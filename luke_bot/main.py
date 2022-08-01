@@ -15,3 +15,7 @@ def main():
     discord_token = os.getenv('DISCORD_TOKEN')
     bot = get_luke_bot()
     bot.run(discord_token)
+
+
+if __name__ == '__main__':
+    main()
