@@ -8,4 +8,4 @@ COPY . .
 
 RUN $HOME/.poetry/bin/poetry install --no-dev
 
-CMD start-lukebot
+CMD $HOME/.poetry/bin/poetry run start-lukebot
