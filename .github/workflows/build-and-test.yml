@@ -87,9 +87,9 @@ jobs:
       - name: Lint with flake8
         run: /root/.poetry/bin/poetry run pflake8 . --count --show-source --statistics
       - name: Type checking with mypy
-        run: mypy luke_bot
+        run: /root/.poetry/bin/poetry run mypy luke_bot
       - name: Test with pytest
-        run: pytest
+        run: /root/.poetry/bin/poetry run pytest
 
   retag:
     if: github.ref == 'refs/heads/main'
