@@ -37,7 +37,7 @@ python-dotenv="^0.20.0"
 pytest="^7.1.2"
 dpytest="^0.5.3"
 flake8="^4.0.1"
-pyproject-flake8="^0.0.1"
+pyproject-flake8="*"
 mypy="^0.971"
 types-requests="^2.28.6"
 
