@@ -28,15 +28,18 @@ classifiers = [
 [tool.poetry.dependencies]
 python = "^3.7"
 
-requests = "~2.28.1"
-python-dotenv="~0.20.0"
-"discord.py"="~1.6.0"
+requests = "^2.28.1"
+python-dotenv="^0.20.0"
+"discord.py"="^1.7.3"
+"discord.py-stubs"="^1.7.3"
 
 [tool.poetry.dev-dependencies]
-pytest="~7.1.2"
-dpytest="~0.5.3"
-flake8="~4.0.1"
-pyproject-flake8="~0.0.1"
+pytest="^7.1.2"
+dpytest="^0.5.3"
+flake8="^4.0.1"
+pyproject-flake8="^0.0.1"
+mypy="^0.971"
+types-requests="^2.28.6"
 
 [tool.poetry.urls]
 "Homepage" = "https://github.com/tolxe/LukeBot"
@@ -52,3 +55,6 @@ start-lukebot = "luke_bot.main:main"
     per-file-ignores = """
         __init__.py: F401
     """
+
+[tool.mypy]
+namespace_packages=true
