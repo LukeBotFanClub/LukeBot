@@ -58,3 +58,8 @@ start-lukebot = "luke_bot.main:main"
 
 [tool.mypy]
 namespace_packages=true
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests",
+]
