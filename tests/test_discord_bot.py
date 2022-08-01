@@ -20,6 +20,6 @@ async def test_send_to_luke_updates(bot):
 
 
 @pytest.mark.asyncio
-async def test_about():
+async def test_about(bot):
     await dpytest.message('!about')
     assert dpytest.get_message().content == "I report updates on Luke"

@@ -43,7 +43,6 @@ jobs:
         uses: docker/metadata-action@v4
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: type=sha,format=long
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v3
@@ -51,7 +50,7 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: test
           labels: ${{ steps.meta.outputs.labels }}
 #          cache-from: type=local,src=/tmp/.buildx-cache
 #          cache-to: type=local,dest=/tmp/.buildx-cache-new
@@ -71,7 +70,7 @@ jobs:
     permissions:
       packages: read
     container: 
-      image: "ghcr.io/tolxe/lukebot:sha-${{ github.sha }}"
+      image: "ghcr.io/tolxe/lukebot:test"
       env:
         GG_TOKEN: ${{ secrets.TEST_GG_TOKEN }}
         DISCORD_TOKEN: ${{ secrets.TEST_DISCORD_TOKEN }}
@@ -111,5 +110,5 @@ jobs:
         with:
           registry: ${{ env.REGISTRY }}
           repository: ${{ github.repository }}
-          target: ${{ github.sha }}
+          target: test
           tags: latest
