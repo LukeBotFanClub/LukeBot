@@ -9,7 +9,7 @@ dirty = true
 metadata = true
 
 [tool.poetry]
-name = "lukebot"
+name = "luke_bot"
 version = "0.0.0"
 authors = [
   "Exlot <author@example.com>" , "Charlie Wilson <charles.ep.wilson@gmail.com>",
