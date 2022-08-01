@@ -182,7 +182,6 @@ def ongoing_results(event_id: int, entrant_id: int):
                 }
             }
         }
-        
         }
     }
     '''
