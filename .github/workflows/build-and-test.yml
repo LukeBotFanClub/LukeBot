@@ -83,7 +83,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install dev dependencies
-        run: $HOME/.poetry/bin/poetry install && $HOME/.poetry/bin/poetry show
+        run: /root/.poetry/bin/poetry install && /root/.poetry/bin/poetry show
 
       - name: Lint with flake8
         run: pflake8 . --count --show-source --statistics
