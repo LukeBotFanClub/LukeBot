@@ -57,7 +57,6 @@ def get_gamer_tag() -> str:
         }
     }
     '''
-    
     response = api_query(query, id=ID)
     tag = response['data']['user']['player']['gamerTag']
     return tag
