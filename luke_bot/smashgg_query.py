@@ -1,17 +1,47 @@
 import os
+from typing import Any, Dict
 
 import requests
 from datetime import datetime, timedelta
 
-token = os.getenv('GG_TOKEN')
-headers = {'Authorization': f'Bearer {token}'}
+TOKEN = os.getenv('GG_TOKEN')
 
 # Luke's Start GG Info
 # Slug (changes with the tag)
 # user/e4082a74
 ID = 1116942
 
-endpoint = "https://api.start.gg/gql/alpha"
+
+def api_query(
+        query: str,
+        requests_args: Dict[str, Any] = None,
+        json_args: Dict[str, Any] = None,
+        **variables
+) -> dict:
+    """Performs a query against the start.gg API, raising an error on a failed request"""
+    if requests_args is None:
+        requests_args = dict()
+    if json_args is None:
+        json_args = dict()
+
+    endpoint = "https://api.start.gg/gql/alpha"
+    headers = {'Authorization': f'Bearer {TOKEN}'}
+    response = requests.post(
+        endpoint,
+        json=dict(query=query, variables=variables),
+        headers=headers,
+        **requests_args,
+    )
+    try:
+        response.raise_for_status()
+    except requests.HTTPError as e:
+        try:
+            print(e.response.json())
+        except requests.JSONDecodeError:
+            pass
+        raise e
+
+    return response.json(**json_args)
 
 
 def get_gamer_tag() -> str:
@@ -27,10 +57,9 @@ def get_gamer_tag() -> str:
         }
     }
     '''
-
-    raw_response = requests.post(endpoint, json={'query': query, 'variables': {'id': ID}}, headers=headers)
-    json = raw_response.json()
-    tag = json['data']['user']['player']['gamerTag']
+    
+    response = api_query(query, id=ID)
+    tag = response['data']['user']['player']['gamerTag']
     return tag
 
 
@@ -71,8 +100,7 @@ def get_last_result(num_results: int, gamertag: str):
     }
     }
     ''' % (num_results, num_results, gamertag)
-    raw_response = requests.post(endpoint, json={'query': query, 'variables': {'id': ID}}, headers=headers)
-    response = raw_response.json()
+    response = api_query(query, id=ID)
     return response['data']['user']['events']['nodes']
 
 
@@ -107,8 +135,7 @@ def get_upcoming_tournaments(id_: int, gamertag: str):
     }
     }
     ''' % gamertag
-    raw_response = requests.post(endpoint, json={'query': query, 'variables': {'id': id_}}, headers=headers)
-    response = raw_response.json()
+    response = api_query(query, id=id_)
     return response['data']['user']['tournaments']['nodes'][::-1]
 
 
@@ -185,10 +212,7 @@ def ongoing_results(event_id: int, entrant_id: int):
         }
     }
     '''
-    raw_response = requests.post(
-        endpoint, json={'query': query, 'variables': {'event_id': event_id, 'entrant_id': entrant_id}}, headers=headers
-    )
-    response = raw_response.json()
+    response = api_query(query, event_id=event_id, entrant_id=entrant_id)
     event = response['data']['event']
     if event is not None:
         current_results = event['sets']['nodes'][::-1]
