@@ -35,10 +35,10 @@ class LukeUpdates(commands.Cog):
         self.channel_id: int = 989598751821811712
         self.most_recent_update: str = ''
         self.luke_updates_channel = None
-        self.luke_ongoing_event: bool = False
+        self.luke_ongoing_event_status: bool = False
         self.luke_out_of_bracket: bool = True
         self.luke_ongoing_id: int = -1
-        self.luke_ongoing_event: int = -1
+        self.luke_ongoing_event_id: int = -1
         self.send_to_luke_updates.start()
 
     def cog_unload(self):
@@ -46,12 +46,15 @@ class LukeUpdates(commands.Cog):
 
     @tasks.loop(seconds=30)
     async def send_to_luke_updates(self):
-        text = check_luke()
+        text, luke_active, entrant_id, event_id = check_luke()
         if text:
             if self.luke_updates_channel is None:
                 self.luke_updates_channel = await self.bot.fetch_channel(self.channel_id)
             if self.luke_updates_channel is not None and not same_update(text, self.most_recent_update):
                 self.most_recent_update = text
+                self.luke_ongoing_event_status = luke_active
+                self.luke_ongoing_id = entrant_id
+                self.luke_ongoing_event_id = event_id
                 embed = discord.Embed()
                 embed.description = self.most_recent_update
                 await self.luke_updates_channel.send(embed=embed)

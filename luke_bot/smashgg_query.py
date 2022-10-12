@@ -259,10 +259,10 @@ def check_luke():
     results = ""
     gamertag = get_gamer_tag()
     last_result = get_last_result(1, gamertag)
-    upcoming = get_upcoming_tournaments(gamertag)
+    upcoming, luke_active, entrant_id, event_id = get_upcoming_tournaments(gamertag)
     results += f"**Current Luke Tag** - `{gamertag}`\n"
     results += "Last Result:\n"
     results += process_results(last_result)
     results += f"Upcoming `{len(upcoming)}` Tournaments - \n"
     results += process_upcoming(upcoming)
-    return results
+    return results, luke_active, entrant_id, event_id
