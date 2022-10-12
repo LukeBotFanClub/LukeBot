@@ -169,6 +169,58 @@ def ongoing_results(event_id: int, entrant_id: int):
     current_results = response['data']['event']['sets']['nodes'][::-1]
     return current_results
 
+def get_last_set(event_id: int, entrant_id: int):
+    """ Returns the last two set results from Luke's profile"""
+    query = '''
+    query InProgressResults($event_id: ID, $entrant_id: ID){
+    event(id: $event_id){
+        tournament{
+            name
+        }
+        name
+        sets(perPage:3,filters:{entrantIds:[$entrant_id]}){
+            nodes{
+                fullRoundText
+                displayScore
+                wPlacement
+                lPlacement
+                winnerId
+                slots{
+                    entrant{
+                        id
+                        name
+                    }
+                }
+
+            }
+        }
+
+        }
+    }
+    '''
+    raw_response = requests.post(endpoint, json={'query': query, 'variables': {'event_id': event_id, 'entrant_id': entrant_id}}, headers=headers)
+    response = raw_response.json()
+    current_results = response['data']['event']['sets']['nodes']
+    result = ""
+    # Index 0 is latest result, but may be incomplete
+    if len(current_results[0]['slots']) == 1:
+        result += f"Luke is waiting for his next opponent in {current_results[0]['fullRoundText']} \n"
+        result += f"Luke is guaranteed place `{current_results[0][lPlacement]}`! \n"
+
+    else: # Assuming both players exist
+        if not current_results[0]['winnerId']:
+            result += f"His current set: \n"
+            result += f"`{current_results[0]['fullRoundText']}`\n"
+            if current_results[0]['displayScore']:
+                result += f"{current_results[0]['displayScore']}\n"
+            else:
+                result += f"`{current_results[0]['slots'][0]['entrant']['name']}` vs `{current_results[0]['slots'][1]['entrant']['name']}`"
+        else:
+            result += f"Final Result for: `{current_results[0]['fullRoundText']}`\n"
+            result += f"{current_results[0]['displayScore']}\n"
+
+    return result
+
 def get_last_bracket_run():
     """Fetches the full bracket run from Luke's last tournament"""
     gamertag = get_gamer_tag()
