@@ -1,6 +1,6 @@
 from discord.ext import commands, tasks
 
-from luke_bot.smashgg_query import check_luke
+from luke_bot.smashgg_query import check_luke, get_last_bracket_run
 
 bot = commands.Bot(command_prefix='!')
 
@@ -10,6 +10,12 @@ async def about(ctx):
     text = 'I report updates on Luke'
     await ctx.send(text)
 
+@bot.command('lastResult')
+async def lastResult(ctx):
+    text = get_last_bracket_run()
+    embed = discord.Embed()
+    embed.description = text
+    await ctx.send(embed=embed)
 
 def same_update(update1: str, update2: str) -> bool:
     lines1 = update1.splitlines()
@@ -29,6 +35,10 @@ class LukeUpdates(commands.Cog):
         self.channel_id: int = 989598751821811712
         self.most_recent_update: str = ''
         self.luke_updates_channel = None
+        self.luke_ongoing_event: bool = False
+        self.luke_out_of_bracket: bool = True
+        self.luke_ongoing_id: int = -1
+        self.luke_ongoing_event: int = -1
         self.send_to_luke_updates.start()
 
     def cog_unload(self):

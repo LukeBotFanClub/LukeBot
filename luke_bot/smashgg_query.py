@@ -77,6 +77,7 @@ def get_last_result(num_results: int, gamertag: str):
 
 
 def get_upcoming_tournaments(gamertag: str):
+    """Fetches the upcoming five tournaments Luke will bless his prescence at"""
     query = '''
     query Upcoming($id: ID){
     user(id: $id){
@@ -134,18 +135,7 @@ def process_upcoming(response):
         days, hours, minutes = td.days, td.seconds // 3600, td.seconds // 60 % 60
         if ts < datetime.now():
             results += f"Started `{days}` days, `{hours}` hours, `{minutes}` minutes ago\n"
-            event_id = event['id']
-            entrant_id = -1
-            for events in event['events']:
-                if 'single' in events['name'].lower():
-                    entrant_id = events['entrants']['nodes'][0]['id']
-            set_scores = ongoing_results(event_id, entrant_id)
-            results += "Set Scores -\n"
-            for set_result in set_scores:
-                results += f"`{set_result['fullRoundText']}` -\n"
-                if set_result['displayScore']:
-                results += f"{set_result['displayScore']}\n"
- 
+            results += "Use `/lastResult` for more a full bracket rundown"
         else:
             results += f"Begins in `{days}` days, `{hours}` hours, `{minutes}` minutes\n"
     return results
@@ -179,6 +169,92 @@ def ongoing_results(event_id: int, entrant_id: int):
     current_results = response['data']['event']['sets']['nodes'][::-1]
     return current_results
 
+def get_last_bracket_run():
+    """Fetches the full bracket run from Luke's last tournament"""
+    gamertag = get_gamer_tag()
+    results = ""
+    query_one = '''
+    query LastResult($id: ID){
+    user(id: $id){
+        events(query:{
+          perPage: %d,
+          page:1
+        }) {
+          nodes {
+            tournament {
+              name
+              id
+              shortSlug
+            }
+            id
+            name
+            numEntrants
+            state
+            standings(query:{
+              perPage: %d,
+              page:1
+              filter:{
+                search:{
+                  searchString:"%s"
+                }
+                }
+              }) {
+              nodes {
+                entrant {
+                    id
+                }
+                placement
+                isFinal
+              }
+            }
+          }
+        }
+    }
+    }
+    ''' % (1, 1, gamertag)
+    raw_response = requests.post(endpoint, json={'query': query_one, 'variables': {'id': ID}}, headers=headers)
+    response = raw_response.json()
+    response = response['data']['user']['events']['nodes']
+    results += process_results(response)
+    
+    event_id = response[0]['id']
+    entrant_id = response[0]['standings']['nodes'][0]['entrant']['id']
+    query_two = '''
+    query InProgressResults($event_id: ID, $entrant_id: ID){
+    event(id: $event_id){
+        tournament{
+            name
+        }
+        name
+        sets(filters:{entrantIds:[$entrant_id]}){
+            nodes{
+                fullRoundText
+                displayScore
+                wPlacement
+                lPlacement
+                slots{
+                    entrant{
+                        id
+                        name
+                    }
+                }
+            }
+        }
+
+        }
+    }
+    '''
+    raw_response = requests.post(endpoint, json={'query': query_two, 'variables': {'event_id': event_id, 'entrant_id': entrant_id}}, headers=headers)
+    response = raw_response.json()
+    bracket_results = response['data']['event']['sets']['nodes'][::-1]
+
+    results += "Set Scores -\n"
+    for set_result in bracket_results:
+        results += f"`{set_result['fullRoundText']}` -\n"
+        if set_result['displayScore']:
+            results += f"{set_result['displayScore']}\n"    
+    return results
+    
 def check_luke():
     results = ""
     gamertag = get_gamer_tag()
