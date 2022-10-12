@@ -57,7 +57,7 @@ class LukeUpdates(commands.Cog):
                 await self.luke_updates_channel.send(embed=embed)
 
 
-def get_luke_bot(command_prefix: str = '!') -> commands.Bot:
+def get_luke_bot(command_prefix: str = '/') -> commands.Bot:
     bot = commands.Bot(command_prefix=command_prefix)
     bot.add_cog(LukeUpdates(bot))
     bot.add_cog(BotInfo(bot))
