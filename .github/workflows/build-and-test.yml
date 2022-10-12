@@ -84,16 +84,16 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install dev dependencies
-        run: /root/.local/bin/poetry install && /root/.local/bin/poetry show
+        run: poetry install && poetry show
 
       - name: Lint with flake8
-        run: /root/.local/bin/poetry run pflake8 . --count --show-source --statistics
+        run: poetry run pflake8 . --count --show-source --statistics
       - name: Type checking with mypy
-        run: /root/.local/bin/poetry run mypy luke_bot
+        run: poetry run mypy luke_bot
       - name: Start bot for testing
-        run: /root/.local/bin/poetry run start-lukebot &
+        run: poetry run start-lukebot &
       - name: Test with pytest
-        run: /root/.local/bin/poetry run pytest
+        run: poetry run pytest
 
   retag_latest:
     if: github.ref == 'refs/heads/main'

@@ -6,6 +6,6 @@ RUN curl -sSL https://install.python-poetry.org | python3 -
 
 COPY . .
 
-RUN /root/.local/bin/poetry install --no-dev
+RUN poetry install --no-dev
 
-CMD /root/.local/bin/poetry run start-lukebot
+CMD poetry run start-lukebot
