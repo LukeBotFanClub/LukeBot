@@ -90,6 +90,8 @@ jobs:
         run: /root/.poetry/bin/poetry run pflake8 . --count --show-source --statistics
       - name: Type checking with mypy
         run: /root/.poetry/bin/poetry run mypy luke_bot
+      - name: Start bot for testing
+        run: /root/.poetry/bin/poetry run start-lukebot &
       - name: Test with pytest
         run: /root/.poetry/bin/poetry run pytest
 
