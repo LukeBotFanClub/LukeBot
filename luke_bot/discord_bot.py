@@ -6,14 +6,17 @@ from discord.ext import commands, tasks
 from .smashgg_query import check_luke
 
 
+HELP_TEXT = 'I report updates on Luke by polling the start.gg API. At the moment this command (/help) is the only ' \
+            'manual one, and the only other functionality is posting to #luke-updates'
+
+
 class BotInfo(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command('about')
+    @commands.command('help')
     async def about(self, ctx):
-        text = 'I report updates on Luke'
-        await ctx.send(text)
+        await ctx.send(HELP_TEXT)
 
 
 def same_update(update1: str, update2: str) -> bool:
