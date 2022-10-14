@@ -49,7 +49,7 @@ def test_luke_bot():
     latest_message = messages[0]
     assert latest_message['author']['username'] == 'TestLukeBot'
     timestamp = datetime.fromisoformat(latest_message['timestamp'])
-    assert datetime.now(timezone.utc) - timestamp > timedelta(minutes=5)
+    assert datetime.now(timezone.utc) - timestamp < timedelta(minutes=5)
     help_message_json = dict(
         content="/about",
     )
