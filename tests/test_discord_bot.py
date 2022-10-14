@@ -32,7 +32,7 @@ def test_same_update():
     assert not same_update(test.update_b, test.update_c)
 
 
-async def test_luke_bot():
+def test_luke_bot():
     # THIS TEST ASSUMES THAT THE MAIN LUKEBOT HAS JUST STARTED UP IN THE TEST SERVER WITHIN THE LAST 5 MINUTES
     channel = request('GET', f'/channels/{CHANNEL_ID}').json()
     assert channel['name'] == "luke-updates"
