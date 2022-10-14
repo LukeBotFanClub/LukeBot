@@ -75,9 +75,10 @@ jobs:
     container: 
       image: "ghcr.io/tolxe/lukebot:test"
       env:
-        GG_TOKEN: ${{ secrets.TEST_GG_TOKEN }}
+        GG_TOKEN: ${{ secrets.GG_TOKEN }}
         DISCORD_TOKEN: ${{ secrets.TEST_DISCORD_TOKEN }}
         DISCORD_CHANNEL_ID: ${{ secrets.TEST_DISCORD_CHANNEL_ID }}
+        DISCORD_TESTER_TOKEN: ${{ secrets.TEST_DISCORD_TESTER_TOKEN }}
 
     steps:
       - name: Checkout
