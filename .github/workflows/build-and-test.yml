@@ -83,7 +83,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          cache: 'poetry' # caching poetry dependencies
       - name: Install dev dependencies
         run: /root/.poetry/bin/poetry install && /root/.poetry/bin/poetry show
 
