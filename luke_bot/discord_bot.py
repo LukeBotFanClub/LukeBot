@@ -1,6 +1,6 @@
 from discord.ext import commands, tasks
 
-from luke_bot.smashgg_query import check_luke, get_last_bracket_run
+from luke_bot.smashgg_query import check_luke, get_last_bracket_run, get_last_set
 
 bot = commands.Bot(command_prefix='!')
 
@@ -34,6 +34,7 @@ class LukeUpdates(commands.Cog):
         self.bot = bot_
         self.channel_id: int = 989598751821811712
         self.most_recent_update: str = ''
+        self.last_set_update: str = ''
         self.luke_updates_channel = None
         self.luke_ongoing_event_status: bool = False
         self.luke_out_of_bracket: bool = True
@@ -58,6 +59,26 @@ class LukeUpdates(commands.Cog):
                 embed = discord.Embed()
                 embed.description = self.most_recent_update
                 await self.luke_updates_channel.send(embed=embed)
+            elif luke_active:
+                if not self.luke_ongoing_event_status:
+                    self.luke_ongoing_event_status = True
+                    self.luke_out_of_bracket = False
+                    self.luke_ongoing_id = entrant_id
+                    self.luke_ongoing_event_id = event_id
+
+                set_update = get_last_set(self.luke_ongoing_id, self.luke_ongoing_event_id)
+
+                if not set_update == self.last_set_update:
+                    self.last_set_update = set_update
+                    embed = discord.Embed()
+                    embed.description = self.last_set_update
+                    await self.luke_updates_channel.send(embed=embed)
+            else:
+                    self.luke_ongoing_event_status = False
+                    self.luke_out_of_bracket = True
+                    self.luke_ongoing_id = -1
+                    self.luke_ongoing_event_id = -1
+                    self.last_set_update = ''
 
 
 bot.add_cog(LukeUpdates(bot))
