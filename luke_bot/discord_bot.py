@@ -14,7 +14,7 @@ class BotInfo(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command('help')
+    @commands.command('about')
     async def about(self, ctx):
         await ctx.send(HELP_TEXT)
 

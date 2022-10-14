@@ -42,7 +42,7 @@ def test_luke_bot():
     timestamp = datetime.fromisoformat(latest_message['timestamp'])
     assert datetime.now() - timestamp < timedelta(minutes=5)
     help_message_json = dict(
-        content="/help",
+        content="/about",
     )
     request('POST', f'/channels/{CHANNEL_ID}/messages', json=help_message_json)
     time.sleep(3)
