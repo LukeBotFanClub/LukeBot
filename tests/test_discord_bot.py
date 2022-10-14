@@ -58,5 +58,3 @@ async def test_luke_bot():
         request('POST', f'/channels/{CHANNEL_ID}/messages/bulk-delete', json=dict(messages=message_ids))
     elif len(message_ids) == 1:
         request('DELETE', f'/channels/{CHANNEL_ID}/messages/{message_ids[0]}')
-
-
