@@ -1,11 +1,11 @@
 import logging
 import os
-import time
+# import time
 from datetime import datetime, timedelta, timezone
 
 import requests
 
-from luke_bot.discord_bot import same_update, HELP_TEXT
+from luke_bot.discord_bot import same_update  # , HELP_TEXT
 from . import test_data as test
 
 logger = logging.getLogger(__name__)
@@ -50,16 +50,16 @@ def test_luke_bot():
     assert latest_message['author']['username'] == 'TestLukeBot'
     timestamp = datetime.fromisoformat(latest_message['timestamp'])
     assert datetime.now(timezone.utc) - timestamp < timedelta(minutes=5)
-    help_message_json = dict(
-        content="/about",
-    )
-    request('POST', f'/channels/{CHANNEL_ID}/messages', json=help_message_json)
-    time.sleep(3)
+    # help_message_json = dict(
+    #     content="/about",
+    # )
+    # request('POST', f'/channels/{CHANNEL_ID}/messages', json=help_message_json)
+    # time.sleep(3)
 
     all_messages = request('GET', f'/channels/{CHANNEL_ID}/messages', params=dict(limit=100)).json()
-    latest_message = all_messages[0]
-    assert latest_message['author']['username'] == 'TestLukeBot'
-    assert latest_message['content'] == HELP_TEXT
+    # latest_message = all_messages[0]
+    # assert latest_message['author']['username'] == 'TestLukeBot'
+    # assert latest_message['content'] == HELP_TEXT
 
     # DELETE ALL MESSAGES IN CHANNEL TO MAKE SURE IT'S EMPTY FOR FUTURE TESTS
     message_ids = [message['id'] for message in all_messages]
