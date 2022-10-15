@@ -1,0 +1,8 @@
+*.env
+tests/
+.github/
+*.egg-info/
+.pytest_cache/
+env/
+build/
+venv/

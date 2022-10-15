@@ -1,0 +1,146 @@
+name: Build and Test
+
+on: [push]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+        
+#      - name: Cache Docker layers
+#        uses: actions/cache@v2
+#        with:
+#          path: /tmp/.buildx-cache
+#          key: ${{ runner.os }}-buildx-${{ github.sha }}
+#          restore-keys: |
+#            ${{ runner.os }}-buildx-
+            
+      - name: Log in to the Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=test
+            type=semver, pattern={{version}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+#          cache-from: type=local,src=/tmp/.buildx-cache
+#          cache-to: type=local,dest=/tmp/.buildx-cache-new
+#        # This ugly bit is necessary if you don't want your cache to grow forever
+#        # until it hits GitHub's limit of 5GB.
+#        # Temp fix
+#        # https://github.com/docker/build-push-action/issues/252
+#        # https://github.com/moby/buildkit/issues/1896
+#      - name: Move cache
+#        run: |
+#          rm -rf /tmp/.buildx-cache
+#          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      packages: read
+    container: 
+      image: "ghcr.io/tolxe/lukebot:test"
+      env:
+        GG_TOKEN: ${{ secrets.GG_TOKEN }}
+        DISCORD_TOKEN: ${{ secrets.TEST_DISCORD_TOKEN }}
+        DISCORD_CHANNEL_ID: ${{ secrets.TEST_DISCORD_CHANNEL_ID }}
+        DISCORD_TESTER_TOKEN: ${{ secrets.TEST_DISCORD_TESTER_TOKEN }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      #      - uses: actions/setup-python@v4
+      #        with:
+      #          python-version: '3.10'
+      #          cache: 'poetry' # caching poetry dependencies
+      - name: Install dev dependencies
+        run: /root/.poetry/bin/poetry install && /root/.poetry/bin/poetry show
+
+      - name: Lint with flake8
+        run: /root/.poetry/bin/poetry run pflake8 . --count --show-source --statistics
+      - name: Type checking with mypy
+        run: /root/.poetry/bin/poetry run mypy luke_bot
+      - name: Start bot for testing
+        run: /root/.poetry/bin/poetry run start-lukebot &
+      - name: Test with pytest
+        run: /root/.poetry/bin/poetry run pytest
+
+  retag_latest:
+    if: github.ref == 'refs/heads/main'
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+
+    steps:
+      - name: Log in to the Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Retag image
+        uses: shrink/actions-docker-registry-tag@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          repository: ${{ github.repository }}
+          target: test
+          tags: latest
+
+  retag_tags:
+    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+
+    steps:
+      - name: Log in to the Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Retag image
+        uses: shrink/actions-docker-registry-tag@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          repository: ${{ github.repository }}
+          target: test
+          tags: ${{github.ref_name}}
