@@ -20,7 +20,7 @@ jobs:
       - run: docker pull ghcr.io/tolxe/lukebot:latest
       - run: >
           docker run -d  
-          -e "GG_TOKEN=${{ secrets.PROD_GG_TOKEN }}" 
+          -e "GG_TOKEN=${{ secrets.GG_TOKEN }}" 
           -e "DISCORD_TOKEN=${{ secrets.PROD_DISCORD_TOKEN }}"
           -e "DISCORD_CHANNEL_ID=${{ secrets.PROD_DISCORD_CHANNEL_ID }}"
           ghcr.io/tolxe/lukebot:latest

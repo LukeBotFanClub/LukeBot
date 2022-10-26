@@ -1,15 +1,19 @@
+import logging
 import os
 from typing import Any, Dict
+from datetime import datetime, timedelta
 
 import requests
-from datetime import datetime, timedelta
+
+logger = logging.getLogger(__name__)
 
 TOKEN = os.getenv('GG_TOKEN')
 
-# Luke's Start GG Info
+# Player's Start GG Info
 # Slug (changes with the tag)
-# user/e4082a74
-ID = 1116942
+# user/e4082a74 for luke
+PLAYER_ID = int(os.getenv('PLAYER_ID', 1116942))
+PLAYER_NAME = os.getenv('PLAYER_NAME', 'Luke')
 
 
 def api_query(
@@ -36,7 +40,7 @@ def api_query(
         response.raise_for_status()
     except requests.HTTPError as e:
         try:
-            print(e.response.json())
+            logger.warning(e.response.json())
         except requests.JSONDecodeError:
             pass
         raise e
@@ -45,7 +49,7 @@ def api_query(
 
 
 def get_gamer_tag() -> str:
-    """Fetches Luke's current Start.GG Epic Gamer Tag"""
+    """Fetches Player's current Start.GG Epic Gamer Tag"""
     query = '''
     query Luke($id: ID){
     user(id: $id){
@@ -57,13 +61,13 @@ def get_gamer_tag() -> str:
         }
     }
     '''
-    response = api_query(query, id=ID)
+    response = api_query(query, id=PLAYER_ID)
     tag = response['data']['user']['player']['gamerTag']
     return tag
 
 
 def get_last_result(num_results: int, gamertag: str):
-    """Returns the last N results from Luke's profile"""
+    """Returns the last N results from Player's profile"""
     query = '''
     query LastResult($id: ID){
     user(id: $id){
@@ -99,8 +103,15 @@ def get_last_result(num_results: int, gamertag: str):
     }
     }
     ''' % (num_results, num_results, gamertag)
-    response = api_query(query, id=ID)
-    return response['data']['user']['events']['nodes']
+    response = api_query(query, id=PLAYER_ID)
+    try:
+        nodes = response['data']['user']['events']['nodes']
+    except TypeError as e:
+        logger.warning(
+            f'Failed to get result from response in `get_last_result`. {response = }. Error = {e} {e.args}'
+        )
+        nodes = None
+    return nodes
 
 
 def get_upcoming_tournaments(id_: int, gamertag: str):
@@ -224,8 +235,10 @@ def check_luke():
     results = ""
     gamertag = get_gamer_tag()
     last_result = get_last_result(1, gamertag)
-    upcoming = get_upcoming_tournaments(ID, gamertag)
-    results += f"**Current Luke Tag** - `{gamertag}`\n"
+    if last_result is None:
+        return None
+    upcoming = get_upcoming_tournaments(PLAYER_ID, gamertag)
+    results += f"**Current {PLAYER_NAME} Tag** - `{gamertag}`\n"
     results += "Last Result:\n"
     results += process_results(last_result)
     results += f"Upcoming `{len(upcoming)}` Tournaments - \n"
