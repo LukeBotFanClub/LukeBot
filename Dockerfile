@@ -6,7 +6,8 @@ ENV PYTHONFAULTHANDLER=1 \
   PIP_NO_CACHE_DIR=off \
   PIP_DISABLE_PIP_VERSION_CHECK=on \
   PIP_DEFAULT_TIMEOUT=100 \
-  POETRY_VERSION=1.1.14
+  POETRY_VERSION=1.1.14 \
+  POETRY_VIRTUALENVS_CREATE=false
 
 RUN apt-get update && apt-get -y upgrade
 RUN apt-get install -y git curl gcc
@@ -14,8 +15,7 @@ RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-
 
 COPY . .
 
-RUN $HOME/.poetry/bin/poetry config virtualenvs.create false \
-  && $HOME/.poetry/bin/poetry install --no-dev --no-interaction --no-ansi
+RUN $HOME/.poetry/bin/poetry install --no-dev --no-interaction --no-ansi
 
 
 CMD $HOME/.poetry/bin/poetry run start-lukebot
