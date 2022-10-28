@@ -13,8 +13,7 @@ RUN pip install "poetry==$POETRY_VERSION"
 
 COPY . .
 
-RUN poetry config virtualenvs.create false \
-  && poetry install --no-dev --no-interaction --no-ansi
-
+RUN poetry config virtualenvs.create false
+RUN poetry install --no-dev --no-interaction --no-ansi
 
 CMD poetry run start-lukebot
