@@ -11,13 +11,10 @@ RUN apt-get update && apt-get -y upgrade
 RUN apt-get install -y git gcc
 RUN pip install "poetry==$POETRY_VERSION"
 
-WORKDIR /code
-# COPY poetry.lock pyproject.toml /code/
+COPY . .
 
-RUN poetry lock \
-  && poetry config virtualenvs.create false \
+RUN poetry config virtualenvs.create false \
   && poetry install --no-dev --no-interaction --no-ansi
 
-COPY . /code
 
 CMD poetry run start-lukebot
