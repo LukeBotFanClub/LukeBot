@@ -81,7 +81,7 @@ jobs:
       - name: Type checking with mypy
         run: /root/.poetry/bin/poetry run mypy luke_bot
       - name: Start bot for testing
-        run: /root/.poetry/bin/poetry run start-lukebot &
+        run: python3 -m luke_bot.main &
       - name: Test with pytest
         run: /root/.poetry/bin/poetry run pytest
 

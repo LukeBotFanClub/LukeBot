@@ -20,4 +20,4 @@ RUN $HOME/.poetry/bin/poetry config virtualenvs.create false \
 
 COPY . /code
 
-CMD $HOME/.poetry/bin/poetry run start-lukebot
+CMD python3 -m luke_bot.main

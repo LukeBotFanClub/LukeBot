@@ -46,9 +46,6 @@ types-requests="^2.28.6"
 "repository" = "https://github.com/tolxe/LukeBot"
 "Bug Tracker" = "https://github.com/tolxe/LukeBot/issues"
 
-[tool.poetry.scripts]
-start-lukebot = "luke_bot.main:main"
-
 [tool.flake8]
     extend-exclude = ".venv,venv/*,*.egg,build/*,.pytest_cache/*,*.egg-info/*"
     max-line-length = 120
