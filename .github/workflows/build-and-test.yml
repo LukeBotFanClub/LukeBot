@@ -63,16 +63,13 @@ jobs:
         DISCORD_TOKEN: ${{ secrets.TEST_DISCORD_TOKEN }}
         DISCORD_CHANNEL_ID: ${{ secrets.TEST_DISCORD_CHANNEL_ID }}
         DISCORD_TESTER_TOKEN: ${{ secrets.TEST_DISCORD_TESTER_TOKEN }}
-        PLAYER_ID: 1116942
+        GG_PLAYER_ID: 1116942
         PLAYER_NAME: Luke
 
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      #      - uses: actions/setup-python@v4
-      #        with:
-      #          python-version: '3.10'
-      #          cache: 'poetry' # caching poetry dependencies
+
       - name: Install dev dependencies
         run: /root/.poetry/bin/poetry install && /root/.poetry/bin/poetry show
 

@@ -7,13 +7,13 @@ import requests
 
 logger = logging.getLogger(__name__)
 
-TOKEN = os.getenv('GG_TOKEN')
+TOKEN: str = os.environ['GG_TOKEN']
 
 # Player's Start GG Info
 # Slug (changes with the tag)
 # user/e4082a74 for luke
-PLAYER_ID = int(os.getenv('PLAYER_ID', 1116942))
-PLAYER_NAME = os.getenv('PLAYER_NAME', 'Luke')
+PLAYER_ID: int = int(os.environ['GG_PLAYER_ID'])
+PLAYER_NAME: str = os.environ['PLAYER_NAME']
 
 
 def api_query(
@@ -156,7 +156,7 @@ def process_results(response):
         results += f"Tournament - `{event['tournament']['name']}`"
         slug = event['tournament']['shortSlug']
         if slug:
-            results += f" - [Start.GG]((https://start.gg/{event['tournament']['shortSlug']}))"
+            results += f" - [Start.GG](https://start.gg/{event['tournament']['shortSlug']})"
         results += "\n"
 
         results += f"PROGRESS : `{event['state']}`\n"

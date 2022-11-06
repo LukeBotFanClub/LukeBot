@@ -1,21 +1,44 @@
 import os
+import logging
+import dataclasses
+import sys
+import asyncio
+
 from dotenv import load_dotenv
+
 load_dotenv()
 
-from .discord_bot import get_luke_bot  # noqa
+from .discord_bot import get_luke_bot  # noqa: E402
+
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
+logger.addHandler(logging.StreamHandler(sys.stdout))
 
 
-def main():
-    environment_variables = ('GG_TOKEN', 'DISCORD_TOKEN', 'DISCORD_CHANNEL_ID')
+@dataclasses.dataclass
+class EnvironmentVariables:
+    """Defines the environment variables required to run the bot"""
+    GG_TOKEN: str
+    GG_PLAYER_ID: int
+    PLAYER_NAME: str
+    DISCORD_TOKEN: str
+    DISCORD_CHANNEL_ID: int
+    BOT_POLLING_PERIOD: int | None
 
-    for var in environment_variables:
-        if os.getenv(var) is None:
-            raise RuntimeError(f'Environment variable {var} not set.')
+    @classmethod
+    def validate(cls):
+        cls(**{f.name: os.getenv(f.name) for f in dataclasses.fields(cls)})
 
-    discord_token = os.getenv('DISCORD_TOKEN')
-    bot = get_luke_bot()
-    bot.run(discord_token)
+
+async def main():
+    logger.info('Checking environment variables...')
+    EnvironmentVariables.validate()
+    logger.info('Environment variables validated')
+    discord_token: str = os.environ['DISCORD_TOKEN']
+    bot = await get_luke_bot()
+    async with bot:
+        await bot.start(discord_token)
 
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())
