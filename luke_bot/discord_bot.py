@@ -5,9 +5,12 @@ from discord.ext import commands, tasks
 
 from .smashgg_query import check_luke
 
+PLAYER_NAME = os.getenv('PLAYER_NAME')
 
-HELP_TEXT = 'I report updates on Luke by polling the start.gg API. At the moment this command (/help) is the only ' \
-            'manual one, and the only other functionality is posting to #luke-updates'
+HELP_TEXT = (
+    f'I report updates on {PLAYER_NAME} by polling the start.gg API. At the moment this command (/help) is '
+    f'the only manual one, and the only other functionality is posting to the update channel'
+)
 
 
 class BotInfo(commands.Cog):
