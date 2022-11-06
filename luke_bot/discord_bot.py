@@ -40,10 +40,13 @@ class LukeCommands(commands.Cog):
         """Syncs slash commands with discord"""
         # This copies the global commands over to your guild.
         guild = ctx.guild
-        self.bot.tree.copy_global_to(guild=guild)
-        synced_cmds = await self.bot.tree.sync(guild=guild)
-        logger.info(f'{synced_cmds = }')
-        await ctx.send(f"Synced commands: {synced_cmds}")
+        if guild is not None:
+            self.bot.tree.copy_global_to(guild=guild)
+            synced_cmds = await self.bot.tree.sync(guild=guild)
+            logger.info(f'{synced_cmds = }')
+            await ctx.send(f"Synced commands: {synced_cmds}")
+        else:
+            await ctx.send("Failed to indentify guild. This shouldn't ever happen really.")
 
     @app_commands.command(name="results", description=f"Post {PLAYER_NAME}'s latest results")
     async def results(self, interaction: Interaction):
