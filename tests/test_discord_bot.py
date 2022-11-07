@@ -81,6 +81,8 @@ def test_help_command():
 
 def test_clean_up():
     # DELETE ALL MESSAGES IN CHANNEL TO MAKE SURE IT'S EMPTY FOR FUTURE TESTS
+    #  a bit cheeky in that i'm assuming this runs after the other tests since i define it last
+    # this works but i should probably work out how to do it with a pytest fixture
     all_messages = request('GET', f'/channels/{CHANNEL_ID}/messages', params=dict(limit=100)).json()
     message_ids = [message['id'] for message in all_messages]
     if len(message_ids) > 1:
