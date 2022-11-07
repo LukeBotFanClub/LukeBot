@@ -65,6 +65,7 @@ jobs:
         DISCORD_TESTER_TOKEN: ${{ secrets.TEST_DISCORD_TESTER_TOKEN }}
         GG_PLAYER_ID: 1116942
         PLAYER_NAME: Luke
+        DEPLOYED_ENVIRONMENT: test
 
     steps:
       - name: Checkout

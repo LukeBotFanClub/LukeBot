@@ -2,8 +2,8 @@ import os
 import logging
 
 from discord import app_commands, Intents, Embed, Interaction
-from discord.ext import tasks
-from discord.ext import commands
+from discord.ext import tasks, commands
+from discord.message import Message
 
 from .smashgg_query import check_luke
 
@@ -100,6 +100,16 @@ class LukeBot(commands.Bot):
             content = last_message.embeds[0].description
             if isinstance(content, str):
                 self.most_recent_update = content
+
+    async def process_commands(self, message: Message, /) -> None:
+        if os.environ["DEPLOYED_ENVIRONMENT"] != "test":
+            # Allows tester bot to invoke commands
+            await super().process_commands(message)
+        else:
+            # Below is copied from the super class's implementation
+            ctx = await self.get_context(message)
+            # the type of the invocation context's bot attribute will be correct
+            await self.invoke(ctx)  # type: ignore
 
 
 async def get_luke_bot() -> LukeBot:

@@ -3,6 +3,7 @@ import logging
 import dataclasses
 import sys
 import asyncio
+from typing import Literal
 
 from dotenv import load_dotenv
 
@@ -24,6 +25,7 @@ class EnvironmentVariables:
     DISCORD_TOKEN: str
     DISCORD_CHANNEL_ID: int
     BOT_POLLING_PERIOD: int | None
+    DEPLOYED_ENVIRONMENT: Literal["dev", "test", "prod"]
 
     @classmethod
     def validate(cls):
