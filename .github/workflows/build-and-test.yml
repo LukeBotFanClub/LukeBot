@@ -88,7 +88,7 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     container:
-      image: "ghr.io/go-containerregistry/crane:debug"
+      image: "gcr.io/go-containerregistry/crane:debug"
     permissions:
       packages: write
 
@@ -110,7 +110,7 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     container:
-      image: "ghr.io/go-containerregistry/crane:debug"
+      image: "gcr.io/go-containerregistry/crane:debug"
     permissions:
       packages: write
 
