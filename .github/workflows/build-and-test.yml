@@ -85,7 +85,7 @@ jobs:
 
   retag_latest:
     if: github.ref == 'refs/heads/main'
-    needs: test
+#    needs: test
     runs-on: ubuntu-latest
     container:
       image: "gcr.io/go-containerregistry/crane:debug"
@@ -100,7 +100,7 @@ jobs:
 
   retag_tags:
     #    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
-    needs: test
+    #    needs: test
     runs-on: ubuntu-latest
     container:
       image: "gcr.io/go-containerregistry/crane:debug"
