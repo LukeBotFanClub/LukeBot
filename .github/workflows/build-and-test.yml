@@ -111,4 +111,4 @@ jobs:
       - name: Crane login
         run: crane auth login -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }} ${{ env.REGISTRY }}
       - name: Crane copy
-        run: crane cp "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:test" "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:test-tag"
+        run: crane cp -v "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:test" "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:test-tag"
