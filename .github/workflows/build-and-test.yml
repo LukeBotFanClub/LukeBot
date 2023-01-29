@@ -100,7 +100,7 @@ jobs:
       - name: Crane login
         run: crane auth login -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }} ${{ env.REGISTRY }}
       - name: Crane tag
-        run: crane tag ${{ env.REGISTRY }}/${ LOWERCASE }:test latest
+        run: crane tag ${{ env.REGISTRY }}/${LOWERCASE}:test latest
 
   retag_tags:
     #    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
@@ -114,7 +114,7 @@ jobs:
     steps:
       - name: downcase IMAGE_NAME
         run: |
-          LOWERCASE = $("${{ env.IMAGE_NAME }}" | tr '[:upper:]' '[:lower:]')
+          LOWERCASE=`"${{ env.IMAGE_NAME }}" | tr '[:upper:]' '[:lower:]'`
           echo $LOWERCASE
           echo "LOWERCASE=${LOWERCASE}" >>${GITHUB_ENV}
 
