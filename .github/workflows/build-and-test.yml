@@ -114,7 +114,7 @@ jobs:
     steps:
       - name: downcase IMAGE_NAME
         run: |
-          echo $SHELL --version
+          echo $SHELL
           UPPERCASE="${{ env.IMAGE_NAME }}"
           echo "LOWERCASE=${UPPERCASE,,}" >>${GITHUB_ENV}
 
