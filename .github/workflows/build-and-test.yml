@@ -114,7 +114,8 @@ jobs:
     steps:
       - name: downcase IMAGE_NAME
         run: |
-          UPPERCASE=${{ env.IMAGE_NAME }}
+          echo $SHELL --version
+          UPPERCASE="${{ env.IMAGE_NAME }}"
           echo "LOWERCASE=${UPPERCASE,,}" >>${GITHUB_ENV}
 
       - name: Crane login
