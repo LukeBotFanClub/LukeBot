@@ -115,10 +115,10 @@ jobs:
       - name: downcase IMAGE_NAME
         run: |
           UPPERCASE="${{ env.IMAGE_NAME }}"
-          LOWERCASE = "$UPPERCASE" | tr '[:upper:]' '[:lower:]'
+          LOWERCASE = $("$UPPERCASE" | tr '[:upper:]' '[:lower:]')
           echo "LOWERCASE=${LOWERCASE}" >>${GITHUB_ENV}
 
       - name: Crane login
         run: crane auth login -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }} ${{ env.REGISTRY }}
       - name: Crane tag
-        run: crane tag -v ${{ env.REGISTRY }}/${ LOWERCASE }:test test-tag
+        run: crane tag -v ${{ env.REGISTRY }}/${LOWERCASE}:test test-tag
