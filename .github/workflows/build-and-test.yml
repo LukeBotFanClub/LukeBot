@@ -114,11 +114,9 @@ jobs:
     steps:
       - name: downcase IMAGE_NAME
         run: |
-          echo SHELL
-          EX="example"
-          echo $EX
           UPPERCASE="${{ env.IMAGE_NAME }}"
-          echo "LOWERCASE=${UPPERCASE,,}" >>${GITHUB_ENV}
+          echo "$UPPERCASE" | tr '[:upper:]' '[:lower:]'
+          echo "LOWERCASE=${UPPERCASE}" >>${GITHUB_ENV}
 
       - name: Crane login
         run: crane auth login -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }} ${{ env.REGISTRY }}
