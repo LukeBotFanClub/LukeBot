@@ -20,4 +20,4 @@ RUN $HOME/.poetry/bin/poetry config virtualenvs.create false \
 
 COPY . /code
 
-CMD python3 -m luke_bot.main
+CMD python3 -m luke_bot

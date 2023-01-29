@@ -1,19 +1,20 @@
 import logging
-import os
 from typing import Any, Dict
 from datetime import datetime, timedelta
 
 import requests
 
+from .settings import settings
+
 logger = logging.getLogger(__name__)
 
-TOKEN: str = os.environ['GG_TOKEN']
+TOKEN: str = settings.GG_TOKEN
 
 # Player's Start GG Info
 # Slug (changes with the tag)
 # user/e4082a74 for luke
-PLAYER_ID: int = int(os.environ['GG_PLAYER_ID'])
-PLAYER_NAME: str = os.environ['PLAYER_NAME']
+PLAYER_ID: int = int(settings.GG_PLAYER_ID)
+PLAYER_NAME: str = settings.PLAYER_NAME
 
 
 def api_query(
