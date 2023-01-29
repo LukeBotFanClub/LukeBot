@@ -93,10 +93,14 @@ jobs:
       packages: write
 
     steps:
+      - name: downcase IMAGE_NAME
+        run: |
+          UPPERCASE=${{ env.IMAGE_NAME,, }}
+          echo "LOWERCASE=${UPPERCASE,,}" >>${GITHUB_ENV}
       - name: Crane login
         run: crane auth login -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }} ${{ env.REGISTRY }}
       - name: Crane tag
-        run: crane tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME,, }}:test latest
+        run: crane tag ${{ env.REGISTRY }}/${ LOWERCASE }:test latest
 
   retag_tags:
     #    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
