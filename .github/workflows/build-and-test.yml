@@ -114,7 +114,7 @@ jobs:
     steps:
       - name: downcase IMAGE_NAME
         run: |
-          LOWERCASE=`${{ env.IMAGE_NAME }} | tr '[:upper:]' '[:lower:]'`
+          LOWERCASE=`echo "${{ env.IMAGE_NAME }}" | tr '[:upper:]' '[:lower:]'`
           echo $LOWERCASE
           echo "LOWERCASE=${LOWERCASE}" >>${GITHUB_ENV}
 
