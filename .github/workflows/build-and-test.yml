@@ -79,7 +79,7 @@ jobs:
   #      - name: Type checking with mypy
   #        run: /root/.poetry/bin/poetry run mypy luke_bot
   #      - name: Start bot for testing
-  #        run: python3 -m luke_bot.main & sleep 2
+  #        run: python3 -m luke_bot & sleep 2
   #      - name: Test with pytest
   #        run: /root/.poetry/bin/poetry run pytest
 
@@ -96,7 +96,7 @@ jobs:
       - name: Crane login
         run: crane auth login -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }} ${{ env.REGISTRY }}
       - name: Crane tag
-        run: crane tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:test latest
+        run: crane tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME,, }}:test latest
 
   retag_tags:
     #    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
@@ -111,4 +111,4 @@ jobs:
       - name: Crane login
         run: crane auth login -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }} ${{ env.REGISTRY }}
       - name: Crane tag
-        run: crane tag -v ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:test test-tag
+        run: crane tag -v ${{ env.REGISTRY }}/${{ env.IMAGE_NAME,, }}:test test-tag
