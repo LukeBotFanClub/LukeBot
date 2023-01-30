@@ -1,22 +1,23 @@
-FROM python:3.10-slim
-ENV PYTHONFAULTHANDLER=1 \
-  PYTHONUNBUFFERED=1 \
-  PYTHONHASHSEED=random \
-  PIP_NO_CACHE_DIR=off \
-  PIP_DISABLE_PIP_VERSION_CHECK=on \
-  PIP_DEFAULT_TIMEOUT=100 \
-  POETRY_VERSION=1.1.14
+FROM python:3.9 as requirements-stage
 
-RUN apt-get update && apt-get -y upgrade
-RUN apt-get install -y git curl gcc
-RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3 - --version $POETRY_VERSION
+WORKDIR /tmp
 
+RUN pip install "poetry>=1.3,<2.0"
+
+COPY ./pyproject.toml ./poetry.lock* /tmp/
+
+RUN poetry export -f requirements.txt --output requirements.txt --without-hashes
+RUN poetry export --with dev -f requirements.txt --output dev-requirements.txt --without-hashes
+
+
+FROM python:3.9-slim
 
 WORKDIR /code
-COPY poetry.lock pyproject.toml /code/
 
-RUN $HOME/.poetry/bin/poetry config virtualenvs.create false \
-  && $HOME/.poetry/bin/poetry install --no-dev --no-interaction --no-ansi
+COPY --from=requirements-stage /tmp/requirements.txt /code/requirements.txt
+COPY --from=requirements-stage /tmp/dev-requirements.txt /code/dev-requirements.txt
+
+RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
 COPY . /code
 

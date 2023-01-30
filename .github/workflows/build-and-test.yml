@@ -70,18 +70,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-
       - name: Install dev dependencies
-        run: /root/.poetry/bin/poetry install && /root/.poetry/bin/poetry show
-
+        run: pip install --no-cache-dir --upgrade -r /code/dev-requirements.txt
       - name: Lint with flake8
-        run: /root/.poetry/bin/poetry run pflake8 . --count --show-source --statistics
+        run: pflake8 . --count --show-source --statistics
       - name: Type checking with mypy
-        run: /root/.poetry/bin/poetry run mypy luke_bot
+        run: mypy luke_bot
       - name: Start bot for testing
         run: python3 -m luke_bot & sleep 2
       - name: Test with pytest
-        run: /root/.poetry/bin/poetry run pytest
+        run: pytest
 
   retag_latest:
     if: github.ref == 'refs/heads/main'
