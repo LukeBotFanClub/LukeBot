@@ -2,7 +2,7 @@ FROM python:3.9 as requirements-stage
 
 WORKDIR /tmp
 
-RUN --mount=type=tmpfs,target=/root/.cargo some_command_that_uses_cargo \
+RUN --mount=type=tmpfs,target=/root/.cargo \
     curl https://sh.rustup.rs -sSf | sh -s -- -y && \
     $HOME/.cargo/env && \
     pip install "poetry>=1.3,<2.0"
