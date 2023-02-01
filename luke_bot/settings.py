@@ -23,7 +23,12 @@ class Settings:
     @classmethod
     def from_environment(cls):
         logger.info('Checking environment variables...')
-        settings_ = cls(**{f.name: os.getenv(f.name) for f in dataclasses.fields(cls)})
+        settings_ = cls(
+            **{
+                f.name: os.getenv(f.name) for f in dataclasses.fields(cls)
+                if os.getenv(f.name) is not None
+            }
+            )
         logger.info('Environment variables validated')
         return settings_
 
