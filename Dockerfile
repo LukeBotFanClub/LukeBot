@@ -2,7 +2,10 @@ FROM python:3.9 as requirements-stage
 
 WORKDIR /tmp
 
-RUN curl https://sh.rustup.rs -sSf | sh -s -- -y;. $HOME/.cargo/env;pip install "poetry>=1.3,<2.0"
+RUN --mount=type=tmpfs,target=/root/.cargo some_command_that_uses_cargo \
+    curl https://sh.rustup.rs -sSf | sh -s -- -y && \
+    $HOME/.cargo/env && \
+    pip install "poetry>=1.3,<2.0"
 
 COPY ./pyproject.toml ./poetry.lock* /tmp/
 
