@@ -2,6 +2,7 @@ import logging
 import os
 import time
 from datetime import datetime, timedelta, timezone
+from typing import Optional
 
 import requests
 import dotenv
@@ -45,7 +46,7 @@ def test_same_update():
     assert not same_update(test.update_b, test.update_c)
 
 
-def get_latest_message(expecting_message: bool = True) -> dict | None:
+def get_latest_message(expecting_message: bool = True) -> Optional[dict]:
     messages = request('GET', f'/channels/{CHANNEL_ID}/messages', params=dict(limit=1)).json()
     if expecting_message:
         assert len(messages) == 1
