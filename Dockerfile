@@ -4,7 +4,7 @@ WORKDIR /tmp
 
 RUN --mount=type=tmpfs,target=/root/.cargo \
     curl https://sh.rustup.rs -sSf | sh -s -- -y && \
-    $HOME/.cargo/env && \
+    . $HOME/.cargo/env && \
     pip install "poetry>=1.3,<2.0"
 
 COPY ./pyproject.toml ./poetry.lock* /tmp/
