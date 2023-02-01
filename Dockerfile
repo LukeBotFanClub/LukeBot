@@ -15,6 +15,7 @@ RUN poetry export -f requirements.txt --output requirements.txt --without-hashes
 FROM python:3.9-slim
 
 WORKDIR /code
+RUN apt-get install gcc -y
 
 COPY --from=requirements-stage /tmp/requirements.txt /code/requirements.txt
 COPY --from=requirements-stage /tmp/dev-requirements.txt /code/dev-requirements.txt
