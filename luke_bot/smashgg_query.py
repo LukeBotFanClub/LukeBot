@@ -189,7 +189,8 @@ def process_upcoming(response):
             entrant_id = -1
             # Filter for Smash Ultimate and 'Single' in event name
             for events in event['events']:
-                if 'single' in events['name'].lower() and events['videogame']['id'] == DEFAULT_GAME_ID and events['entrants']['nodes']:
+                if 'single' in events['name'].lower() and events['videogame']['id'] \
+                    == DEFAULT_GAME_ID and events['entrants']['nodes']:
                     entrant_id = events['entrants']['nodes'][0]['id']
                     event_id = events['id']
                     break
