@@ -19,6 +19,7 @@ class Settings:
     DISCORD_CHANNEL_ID: int
     DEPLOYED_ENVIRONMENT: Literal["dev", "test", "prod"]
     BOT_POLLING_PERIOD: int = 30
+    DEFAULT_GAME_ID: int = 1386
 
     @classmethod
     def from_environment(cls):

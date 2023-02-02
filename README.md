@@ -1,6 +1,6 @@
 # LukeBot
 
-[![Build and Test](https://github.com/tolxe/LukeBot/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/tolxe/LukeBot/actions/workflows/build-and-test.yml)
+[![Build and Test](https://github.com/LukeBotFanClub/LukeBot/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/LukeBotFanClub/LukeBot/actions/workflows/build-and-test.yml)
 
 A Discord bot to poll the start.gg API for the results of a given player (originally Luke, but now configurable)
 and post them to an given text channel.

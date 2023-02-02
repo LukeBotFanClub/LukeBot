@@ -15,6 +15,7 @@ TOKEN: str = settings.GG_TOKEN
 # user/e4082a74 for luke
 PLAYER_ID: int = int(settings.GG_PLAYER_ID)
 PLAYER_NAME: str = settings.PLAYER_NAME
+DEFAULT_GAME_ID: int = settings.DEFAULT_GAME_ID
 
 
 def api_query(
@@ -135,6 +136,9 @@ def get_upcoming_tournaments(id_: int, gamertag: str):
                 events(limit:3){
                   id
                   name
+                  videogame {
+                      id
+                  }
                   entrants(query:{filter:{name:"%s"}}){
                     nodes{
                       id
@@ -183,17 +187,27 @@ def process_upcoming(response):
             results += f"Started `{abs(days)}` days, `{hours}` hours, `{minutes}` minutes ago\n"
             event_id = event['id']
             entrant_id = -1
+            # Filter for Smash Ultimate and 'Single' in event name
             for events in event['events']:
-                if 'single' in events['name'].lower() and events['entrants']['nodes']:
+                if 'single' in events['name'].lower() and events['videogame']['id'] == DEFAULT_GAME_ID and events['entrants']['nodes']:
                     entrant_id = events['entrants']['nodes'][0]['id']
                     event_id = events['id']
                     break
+            # If still empty, take any Smash Ultimate event
+            if entrant_id == -1:
+                for events in event['events']:
+                    if events['videogame']['id'] == DEFAULT_GAME_ID and events['entrants']['nodes']:
+                        entrant_id = events['entrants']['nodes'][0]['id']
+                        event_id = events['id']
+                        break
+
             set_scores = ongoing_results(event_id, entrant_id)
-            results += "Set Scores -\n"
-            for set_result in set_scores:
-                results += f"`{set_result['fullRoundText']}` -\n"
-                if set_result['displayScore']:
-                    results += f"{set_result['displayScore']}\n"
+            if set_scores:
+                results += "Set Scores -\n"
+                for set_result in set_scores:
+                    results += f"`{set_result['fullRoundText']}` -\n"
+                    if set_result['displayScore']:
+                        results += f"{set_result['displayScore']}\n"
 
         else:
             results += f"Begins in `{days}` days, `{hours}` hours, `{minutes}` minutes\n"
