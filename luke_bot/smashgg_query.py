@@ -176,30 +176,40 @@ def process_upcoming(response):
     results = ""
     for event in response:
         results += f"Tournament - `{event['name']}`"
-        slug = event['shortSlug']
+        slug = event["shortSlug"]
         if slug:
             results += f" - [Start.GG](https://start.gg/{event['shortSlug']})"
         results += "\n"
-        event_start = datetime.utcfromtimestamp(event['startAt'])
+        event_start = datetime.utcfromtimestamp(event["startAt"])
         event_starts_in = event_start - datetime.utcnow()
-        days, hours, minutes = event_starts_in.days, event_starts_in.seconds // 3600, event_starts_in.seconds // 60 % 60
+        days, hours, minutes = (
+            event_starts_in.days,
+            event_starts_in.seconds // 3600,
+            event_starts_in.seconds // 60 % 60,
+        )
         if event_starts_in < timedelta():
             results += f"Started `{abs(days)}` days, `{hours}` hours, `{minutes}` minutes ago\n"
-            event_id = event['id']
+            event_id = event["id"]
             entrant_id = -1
             # Filter for Smash Ultimate and 'Single' in event name
-            for events in event['events']:
-                if 'single' in events['name'].lower() and events['videogame']['id'] \
-                    == DEFAULT_GAME_ID and events['entrants']['nodes']:
-                    entrant_id = events['entrants']['nodes'][0]['id']
-                    event_id = events['id']
+            for events in event["events"]:
+                if (
+                    "single" in events["name"].lower()
+                    and events["videogame"]["id"] == DEFAULT_GAME_ID
+                    and events["entrants"]["nodes"]
+                ):
+                    entrant_id = events["entrants"]["nodes"][0]["id"]
+                    event_id = events["id"]
                     break
             # If still empty, take any Smash Ultimate event
             if entrant_id == -1:
-                for events in event['events']:
-                    if events['videogame']['id'] == DEFAULT_GAME_ID and events['entrants']['nodes']:
-                        entrant_id = events['entrants']['nodes'][0]['id']
-                        event_id = events['id']
+                for events in event["events"]:
+                    if (
+                        events["videogame"]["id"] == DEFAULT_GAME_ID
+                        and events["entrants"]["nodes"]
+                    ):
+                        entrant_id = events["entrants"]["nodes"][0]["id"]
+                        event_id = events["id"]
                         break
 
             set_scores = ongoing_results(event_id, entrant_id)
@@ -207,11 +217,13 @@ def process_upcoming(response):
                 results += "Set Scores -\n"
                 for set_result in set_scores:
                     results += f"`{set_result['fullRoundText']}` -\n"
-                    if set_result['displayScore']:
+                    if set_result["displayScore"]:
                         results += f"{set_result['displayScore']}\n"
 
         else:
-            results += f"Begins in `{days}` days, `{hours}` hours, `{minutes}` minutes\n"
+            results += (
+                f"Begins in `{days}` days, `{hours}` hours, `{minutes}` minutes\n"
+            )
     return results
 
 
