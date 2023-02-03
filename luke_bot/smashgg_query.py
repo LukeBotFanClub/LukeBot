@@ -83,6 +83,7 @@ def get_last_result(num_results: int, gamertag: str):
               id
               shortSlug
             }
+            id
             name
             numEntrants
             state
@@ -96,6 +97,9 @@ def get_last_result(num_results: int, gamertag: str):
                 }
               }) {
               nodes {
+                entrant {
+                    id
+                }
                 placement
                 isFinal
               }
@@ -116,12 +120,12 @@ def get_last_result(num_results: int, gamertag: str):
     return nodes
 
 
-def get_upcoming_tournaments(id_: int, gamertag: str):
+def get_upcoming_tournaments(id_: int, gamertag: str, num_results: int):
     query = '''
     query Upcoming($id: ID){
     user(id: $id){
         tournaments(query: {
-            perPage: 5,
+            perPage: %d,
             page: 1,
             filter: {
                 upcoming:true
@@ -149,7 +153,7 @@ def get_upcoming_tournaments(id_: int, gamertag: str):
         }
     }
     }
-    ''' % gamertag
+    ''' % (num_results, gamertag)
     response = api_query(query, id=id_)
     return response['data']['user']['tournaments']['nodes'][::-1]
 
@@ -213,17 +217,25 @@ def process_upcoming(response):
                         break
 
             set_scores = ongoing_results(event_id, entrant_id)
-            if set_scores:
-                results += "Set Scores -\n"
-                for set_result in set_scores:
-                    results += f"`{set_result['fullRoundText']}` -\n"
-                    if set_result["displayScore"]:
-                        results += f"{set_result['displayScore']}\n"
+            results += process_set_results(set_scores, entrant_id)
 
         else:
             results += (
                 f"Begins in `{days}` days, `{hours}` hours, `{minutes}` minutes\n"
             )
+    return results
+
+
+def process_set_results(set_scores: list, entrant_id: int):
+    results = ""
+    results += f"Set Score{'s' if len(set_scores) > 1 else ''} -\n"
+    for set_result in set_scores:
+        results += f"`{set_result['fullRoundText']}` -\n"
+        if set_result['displayScore']:
+            results += f"{set_result['displayScore']} \
+                {':crown:' if entrant_id == set_result['winnerId'] else ':regional_indicator_f:'}\n"
+        else:
+            results += f"{PLAYER_NAME} is waiting for their opponent in {set_result['fullRoundText']}\n"
     return results
 
 
@@ -239,12 +251,10 @@ def ongoing_results(event_id: int, entrant_id: int):
             nodes{
                 fullRoundText
                 displayScore
-                slots{
-                    entrant{
-                        id
-                        name
-                    }
-                }
+                wPlacement
+                lPlacement
+                winnerId
+                round
             }
         }
         }
@@ -259,13 +269,47 @@ def ongoing_results(event_id: int, entrant_id: int):
     return current_results
 
 
+def get_last_bracket_run():
+    """Fetches the full bracket run from Luke's last tournament"""
+    gamertag = get_gamer_tag()
+    results = ""
+    last_result = get_last_result(1, gamertag)
+    if last_result is None:
+        return "There was an issue fetching data from start.gg, please try again later"
+
+    results += process_results(last_result)
+
+    event_id = last_result[0]['id']
+    entrant_id = last_result[0]['standings']['nodes'][0]['entrant']['id']
+    bracket_results = ongoing_results(event_id, entrant_id)
+
+    results += process_set_results(bracket_results, entrant_id)
+    return results
+
+
+def get_last_set():
+    """Fetches the full bracket run from Luke's last tournament"""
+    gamertag = get_gamer_tag()
+    results = ""
+    last_result = get_last_result(1, gamertag)
+    if last_result is None:
+        return "There was an issue fetching data from start.gg, please try again later"
+
+    event_id = last_result[0]['id']
+    entrant_id = last_result[0]['standings']['nodes'][0]['entrant']['id']
+    bracket_results = ongoing_results(event_id, entrant_id)
+
+    results += process_set_results([bracket_results[-1]], entrant_id)
+    return results
+
+
 def check_luke():
     results = ""
     gamertag = get_gamer_tag()
     last_result = get_last_result(1, gamertag)
     if last_result is None:
         return None
-    upcoming = get_upcoming_tournaments(PLAYER_ID, gamertag)
+    upcoming = get_upcoming_tournaments(PLAYER_ID, gamertag, 5)
     results += f"**Current {PLAYER_NAME} Tag** - `{gamertag}`\n"
     results += "Last Result:\n"
     results += process_results(last_result)
