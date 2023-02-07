@@ -5,7 +5,7 @@ from discord.ext import tasks, commands
 from discord.message import Message
 
 from .settings import settings
-from .smashgg_query import check_luke
+from .smashgg_query import check_luke, get_last_bracket_run, get_last_set
 
 logger = logging.getLogger(__name__)
 
@@ -53,6 +53,20 @@ class LukeCommands(commands.Cog):
         """Manually invoke an update, and have the bot post it to the channel where it was invoked"""
         embed = Embed()
         embed.description = str(check_luke())
+        await interaction.response.send_message(embed=embed)
+
+    @app_commands.command(name="last_run", description=f"Post {PLAYER_NAME}'s last bracket run results'")
+    async def last_run(self, interaction: Interaction):
+        text = get_last_bracket_run()
+        embed = Embed()
+        embed.description = text
+        await interaction.response.send_message(embed=embed)
+
+    @app_commands.command(name="current_set", description=f"Post {PLAYER_NAME}'s most recent ongoing set result'")
+    async def current_set(self, interaction: Interaction):
+        text = get_last_set()
+        embed = Embed()
+        embed.description = text
         await interaction.response.send_message(embed=embed)
 
 
