@@ -1,8 +1,8 @@
-import logging
 import asyncio
+import logging
 
-from .settings import settings
 from .discord_bot import get_luke_bot
+from .settings import settings
 
 logger = logging.getLogger()
 
@@ -14,5 +14,5 @@ async def main():
         await bot.start(discord_token)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     asyncio.run(main())

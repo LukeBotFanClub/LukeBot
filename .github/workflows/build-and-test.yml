@@ -72,8 +72,12 @@ jobs:
         uses: actions/checkout@v3
       - name: Install dev dependencies
         run: pip install --no-cache-dir --upgrade -r /code/dev-requirements.txt
-      - name: Lint with flake8
-        run: pflake8 . --count --show-source --statistics
+      - name: Lint with ruff
+        run: ruff .
+      - name: Check formatting with black
+        run: black --check .
+      - name: Check docstring formatting with docformatter
+        run: docformatter --check -r .
       - name: Type checking with mypy
         run: mypy luke_bot
       - name: Start bot for testing

@@ -1,4 +1,4 @@
-FROM python:3.9 as requirements-stage
+FROM python:3.10 as requirements-stage
 
 WORKDIR /tmp
 
@@ -12,7 +12,7 @@ COPY ./pyproject.toml ./poetry.lock* /tmp/
 RUN poetry export -f requirements.txt --output requirements.txt --without-hashes;poetry export --with dev -f requirements.txt --output dev-requirements.txt --without-hashes
 
 
-FROM python:3.9-slim
+FROM python:3.10-slim
 
 WORKDIR /code
 RUN apt-get update && apt-get -y upgrade && apt-get install gcc -y

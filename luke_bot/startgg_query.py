@@ -1,6 +1,6 @@
 import logging
-from typing import Any, Dict
 from datetime import datetime, timedelta
+from typing import Any, Dict
 
 import requests
 
@@ -22,16 +22,17 @@ def api_query(
         query: str,
         requests_args: Dict[str, Any] = None,
         json_args: Dict[str, Any] = None,
-        **variables
+        **variables,
 ) -> dict:
-    """Performs a query against the start.gg API, raising an error on a failed request"""
+    """Performs a query against the start.gg API, raising an error on a failed
+    request."""
     if requests_args is None:
         requests_args = dict()
     if json_args is None:
         json_args = dict()
 
     endpoint = "https://api.start.gg/gql/alpha"
-    headers = {'Authorization': f'Bearer {TOKEN}'}
+    headers = {"Authorization": f"Bearer {TOKEN}"}
     response = requests.post(
         endpoint,
         json=dict(query=query, variables=variables),
@@ -51,8 +52,8 @@ def api_query(
 
 
 def get_gamer_tag() -> str:
-    """Fetches Player's current Start.GG Epic Gamer Tag"""
-    query = '''
+    """Fetches Player's current Start.GG Epic Gamer Tag."""
+    query = """
     query Luke($id: ID){
     user(id: $id){
         id,
@@ -62,15 +63,15 @@ def get_gamer_tag() -> str:
             }
         }
     }
-    '''
+    """
     response = api_query(query, id=PLAYER_ID)
-    tag = response['data']['user']['player']['gamerTag']
+    tag = response["data"]["user"]["player"]["gamerTag"]
     return tag
 
 
 def get_last_result(num_results: int, gamertag: str):
-    """Returns the last N results from Player's profile"""
-    query = '''
+    """Returns the last N results from Player's profile."""
+    query = """
     query LastResult($id: ID){
     user(id: $id){
         events(query:{
@@ -108,20 +109,21 @@ def get_last_result(num_results: int, gamertag: str):
         }
     }
     }
-    ''' % (num_results, num_results, gamertag)
+    """ % (num_results, num_results, gamertag)
     response = api_query(query, id=PLAYER_ID)
     try:
-        nodes = response['data']['user']['events']['nodes']
+        nodes = response["data"]["user"]["events"]["nodes"]
     except TypeError as e:
         logger.warning(
-            f'Failed to get result from response in `get_last_result`. {response = }. Error = {e} {e.args}'
+            f"Failed to get result from response in `get_last_result`. {response = }."
+            f" Error = {e} {e.args}"
         )
         nodes = None
     return nodes
 
 
 def get_upcoming_tournaments(id_: int, gamertag: str, num_results: int):
-    query = '''
+    query = """
     query Upcoming($id: ID){
     user(id: $id){
         tournaments(query: {
@@ -153,30 +155,33 @@ def get_upcoming_tournaments(id_: int, gamertag: str, num_results: int):
         }
     }
     }
-    ''' % (num_results, gamertag)
+    """ % (num_results, gamertag)
     response = api_query(query, id=id_)
-    return response['data']['user']['tournaments']['nodes'][::-1]
+    return response["data"]["user"]["tournaments"]["nodes"][::-1]
 
 
 def process_results(response):
-    """Processes list of Finalised Tournament Objects into a readable Format"""
+    """Processes list of Finalised Tournament Objects into a readable
+    Format."""
     results = ""
     for event in response:
         results += f"Tournament - `{event['tournament']['name']}`"
-        slug = event['tournament']['shortSlug']
+        slug = event["tournament"]["shortSlug"]
         if slug:
-            results += f" - [Start.GG](https://start.gg/{event['tournament']['shortSlug']})"
+            results += (
+                f" - [Start.GG](https://start.gg/{event['tournament']['shortSlug']})"
+            )
         results += "\n"
 
         results += f"PROGRESS : `{event['state']}`\n"
-        placing = event['standings']['nodes'][0]['placement']
+        placing = event["standings"]["nodes"][0]["placement"]
         results += f"Placement : `{placing}` in `{event['numEntrants']}`\n\n"
 
     return results
 
 
 def process_upcoming(response):
-    """Processes list of Upcoming Tournament Objects into a readable format"""
+    """Processes list of Upcoming Tournament Objects into a readable format."""
     results = ""
     for event in response:
         results += f"Tournament - `{event['name']}`"
@@ -192,15 +197,18 @@ def process_upcoming(response):
             event_starts_in.seconds // 60 % 60,
         )
         if event_starts_in < timedelta():
-            results += f"Started `{abs(days)}` days, `{hours}` hours, `{minutes}` minutes ago\n"
+            results += (
+                f"Started `{abs(days)}` days, `{hours}` hours, `{minutes}` minutes"
+                " ago\n"
+            )
             event_id = event["id"]
             entrant_id = -1
             # Filter for Smash Ultimate and 'Single' in event name
             for events in event["events"]:
                 if (
-                    "single" in events["name"].lower()
-                    and events["videogame"]["id"] == DEFAULT_GAME_ID
-                    and events["entrants"]["nodes"]
+                        "single" in events["name"].lower()
+                        and events["videogame"]["id"] == DEFAULT_GAME_ID
+                        and events["entrants"]["nodes"]
                 ):
                     entrant_id = events["entrants"]["nodes"][0]["id"]
                     event_id = events["id"]
@@ -231,16 +239,21 @@ def process_set_results(set_scores: list, entrant_id: int):
     results += f"Set Score{'s' if len(set_scores) > 1 else ''} -\n"
     for set_result in set_scores:
         results += f"`{set_result['fullRoundText']}` -\n"
-        if set_result['displayScore']:
-            results += f"{set_result['displayScore']} \
-                {':crown:' if entrant_id == set_result['winnerId'] else ':regional_indicator_f:'}\n"
+        if set_result["displayScore"]:
+            results += (
+                f"{set_result['displayScore']}                "
+                f" {':crown:' if entrant_id == set_result['winnerId'] else ':regional_indicator_f:'}\n"
+            )
         else:
-            results += f"{PLAYER_NAME} is waiting for their opponent in {set_result['fullRoundText']}\n"
+            results += (
+                f"{PLAYER_NAME} is waiting for their opponent in"
+                f" {set_result['fullRoundText']}\n"
+            )
     return results
 
 
 def ongoing_results(event_id: int, entrant_id: int):
-    query = '''
+    query = """
     query InProgressResults($event_id: ID, $entrant_id: ID){
     event(id: $event_id){
         tournament{
@@ -259,18 +272,18 @@ def ongoing_results(event_id: int, entrant_id: int):
         }
         }
     }
-    '''
+    """
     response = api_query(query, event_id=event_id, entrant_id=entrant_id)
-    event = response['data']['event']
+    event = response["data"]["event"]
     if event is not None:
-        current_results = event['sets']['nodes'][::-1]
+        current_results = event["sets"]["nodes"][::-1]
     else:
         current_results = []
     return current_results
 
 
 def get_last_bracket_run():
-    """Fetches the full bracket run from Luke's last tournament"""
+    """Fetches the full bracket run from Luke's last tournament."""
     gamertag = get_gamer_tag()
     results = ""
     last_result = get_last_result(1, gamertag)
@@ -279,8 +292,8 @@ def get_last_bracket_run():
 
     results += process_results(last_result)
 
-    event_id = last_result[0]['id']
-    entrant_id = last_result[0]['standings']['nodes'][0]['entrant']['id']
+    event_id = last_result[0]["id"]
+    entrant_id = last_result[0]["standings"]["nodes"][0]["entrant"]["id"]
     bracket_results = ongoing_results(event_id, entrant_id)
 
     results += process_set_results(bracket_results, entrant_id)
@@ -288,15 +301,15 @@ def get_last_bracket_run():
 
 
 def get_last_set():
-    """Fetches the full bracket run from Luke's last tournament"""
+    """Fetches the full bracket run from Luke's last tournament."""
     gamertag = get_gamer_tag()
     results = ""
     last_result = get_last_result(1, gamertag)
     if last_result is None:
         return "There was an issue fetching data from start.gg, please try again later"
 
-    event_id = last_result[0]['id']
-    entrant_id = last_result[0]['standings']['nodes'][0]['entrant']['id']
+    event_id = last_result[0]["id"]
+    entrant_id = last_result[0]["standings"]["nodes"][0]["entrant"]["id"]
     bracket_results = ongoing_results(event_id, entrant_id)
 
     results += process_set_results([bracket_results[-1]], entrant_id)

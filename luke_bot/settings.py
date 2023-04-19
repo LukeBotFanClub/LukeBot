@@ -1,6 +1,6 @@
-import os
-import logging
 import dataclasses
+import logging
+import os
 from typing import Literal
 
 from dotenv import load_dotenv
@@ -11,7 +11,8 @@ logger = logging.getLogger()
 
 @dataclasses.dataclass
 class Settings:
-    """Defines the environment variables required to run the bot"""
+    """Defines the environment variables required to run the bot."""
+
     GG_TOKEN: str
     GG_PLAYER_ID: int
     PLAYER_NAME: str
@@ -23,14 +24,15 @@ class Settings:
 
     @classmethod
     def from_environment(cls):
-        logger.info('Checking environment variables...')
+        logger.info("Checking environment variables...")
         settings_ = cls(
             **{
-                f.name: os.getenv(f.name) for f in dataclasses.fields(cls)
+                f.name: os.getenv(f.name)
+                for f in dataclasses.fields(cls)
                 if os.getenv(f.name) is not None
             }
-            )
-        logger.info('Environment variables validated')
+        )
+        logger.info("Environment variables validated")
         return settings_
 
 

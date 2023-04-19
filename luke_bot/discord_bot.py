@@ -1,28 +1,28 @@
 import logging
 
-from discord import app_commands, Intents, Embed, Interaction
-from discord.ext import tasks, commands
+from discord import Embed, Intents, Interaction, app_commands
+from discord.ext import commands, tasks
 from discord.message import Message
 
 from .settings import settings
-from .smashgg_query import check_luke, get_last_bracket_run, get_last_set
+from .startgg_query import check_luke, get_last_bracket_run, get_last_set
 
 logger = logging.getLogger(__name__)
 
 PLAYER_NAME: str = settings.PLAYER_NAME
-HELP_TEXT = f'I report updates on {PLAYER_NAME} by polling the start.gg API.'
+HELP_TEXT = f"I report updates on {PLAYER_NAME} by polling the start.gg API."
 
 
 def same_update(update1: str, update2: str) -> bool:
-    """Checks if 2 blocks of update text contain the same information"""
+    """Checks if 2 blocks of update text contain the same information."""
     lines1 = update1.strip().splitlines()
     lines2 = update2.strip().splitlines()
     if len(lines1) != len(lines2):
         # Different number of lines means definitely different
         return False
-    for line1, line2 in zip(lines1, lines2):
+    for line1, line2 in zip(lines1, lines2, strict=True):
         # Loop through corresponding lines, skipping the ones with relative time in them
-        if line1.startswith(('Begins in', 'Started')):
+        if line1.startswith(("Begins in", "Started")):
             continue
         if line1 != line2:
             return False
@@ -37,32 +37,44 @@ class LukeCommands(commands.Cog):
 
     @commands.command(name="sync")
     async def sync(self, ctx: commands.Context):
-        """Syncs slash commands with discord"""
+        """Syncs slash commands with discord."""
         # This copies the global commands over to your guild.
         guild = ctx.guild
         if guild is not None:
             self.bot.tree.copy_global_to(guild=guild)
             synced_cmds = await self.bot.tree.sync(guild=guild)
-            logger.info(f'{synced_cmds = }')
+            logger.info(f"{synced_cmds = }")
             await ctx.send(f"Synced commands: {synced_cmds}")
         else:
-            await ctx.send("Failed to indentify guild. This shouldn't ever happen really.")
+            await ctx.send(
+                "Failed to indentify guild. This shouldn't ever happen really.",
+            )
 
-    @app_commands.command(name="results", description=f"Post {PLAYER_NAME}'s latest results")
+    @app_commands.command(
+        name="results",
+        description=f"Post {PLAYER_NAME}'s latest results",
+    )
     async def results(self, interaction: Interaction):
-        """Manually invoke an update, and have the bot post it to the channel where it was invoked"""
+        """Manually invoke an update, and have the bot post it to the channel
+        where it was invoked."""
         embed = Embed()
         embed.description = str(check_luke())
         await interaction.response.send_message(embed=embed)
 
-    @app_commands.command(name="last_run", description=f"Post {PLAYER_NAME}'s last bracket run results'")
+    @app_commands.command(
+        name="last_run",
+        description=f"Post {PLAYER_NAME}'s last bracket run results",
+    )
     async def last_run(self, interaction: Interaction):
         text = get_last_bracket_run()
         embed = Embed()
         embed.description = text
         await interaction.response.send_message(embed=embed)
 
-    @app_commands.command(name="current_set", description=f"Post {PLAYER_NAME}'s most recent ongoing set result'")
+    @app_commands.command(
+        name="current_set",
+        description=f"Post {PLAYER_NAME}'s most recent ongoing set result'",
+    )
     async def current_set(self, interaction: Interaction):
         text = get_last_set()
         embed = Embed()
@@ -71,28 +83,33 @@ class LukeCommands(commands.Cog):
 
 
 class LukeBot(commands.Bot):
-    """This bot reports tournament results by polling tye start.gg API"""
+    """This bot reports tournament results by polling tye start.gg API."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.channel_id: int = int(settings.DISCORD_CHANNEL_ID)
-        self.most_recent_update: str = ''
+        self.most_recent_update: str = ""
         self.luke_updates_channel = None
 
     async def setup_hook(self) -> None:
         self.send_to_luke_updates.start()
 
     async def on_ready(self):
-        logger.info(f'Logged in as {self.user} (ID: {self.user.id})')
+        logger.info(f"Logged in as {self.user} (ID: {self.user.id})")
 
     @tasks.loop(seconds=int(settings.BOT_POLLING_PERIOD))
     async def send_to_luke_updates(self):
-        """Polls the start.gg API for latest results. If there's new info, an update is posted to the updates channel"""
+        """Polls the start.gg API for latest results.
+
+        If there's new info, an update is posted to the updates channel
+        """
         text = check_luke()
         if text:
             if self.luke_updates_channel is None:
                 self.luke_updates_channel = self.get_channel(self.channel_id)
-            if self.luke_updates_channel is not None and not same_update(text, self.most_recent_update):
+            if self.luke_updates_channel is not None and not same_update(
+                    text, self.most_recent_update
+            ):
                 self.most_recent_update = text
                 embed = Embed()
                 embed.description = self.most_recent_update
@@ -105,7 +122,10 @@ class LukeBot(commands.Bot):
         if self.luke_updates_channel is None:
             self.luke_updates_channel = self.get_channel(self.channel_id)
         last_message = None
-        async for message in self.luke_updates_channel.history(limit=15, oldest_first=False):
+        async for message in self.luke_updates_channel.history(
+                limit=15,
+                oldest_first=False,
+        ):
             if message.author == self.user:
                 last_message = message
                 break
@@ -128,12 +148,31 @@ class LukeBot(commands.Bot):
 
 async def get_luke_bot() -> LukeBot:
     intents = Intents(
-        guild_messages=True, guilds=True, messages=True, message_content=True,
+        guild_messages=True,
+        guilds=True,
+        messages=True,
+        message_content=True,
         members=False,
-        auto_moderation=False, auto_moderation_configuration=False, auto_moderation_execution=False,
-        bans=False, dm_messages=False, dm_reactions=False, dm_typing=False, emojis=False, emojis_and_stickers=False,
-        guild_reactions=False, guild_scheduled_events=False, guild_typing=False, integrations=False, invites=False,
-        presences=False, reactions=False, typing=False, value=False, voice_states=False, webhooks=False,
+        auto_moderation=False,
+        auto_moderation_configuration=False,
+        auto_moderation_execution=False,
+        bans=False,
+        dm_messages=False,
+        dm_reactions=False,
+        dm_typing=False,
+        emojis=False,
+        emojis_and_stickers=False,
+        guild_reactions=False,
+        guild_scheduled_events=False,
+        guild_typing=False,
+        integrations=False,
+        invites=False,
+        presences=False,
+        reactions=False,
+        typing=False,
+        value=False,
+        voice_states=False,
+        webhooks=False,
     )
     bot = LukeBot(intents=intents, command_prefix=commands.when_mentioned)
     commands_cog = LukeCommands(bot)
