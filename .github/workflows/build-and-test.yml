@@ -5,9 +5,47 @@ on: [push]
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  PYTHON_VERSION: 3.11
 
 jobs:
-  build:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: read
+    container:
+      image: "ghcr.io/lukebotfanclub/poetry-python:${{ env.PYTHON_VERSION }}"
+      env:
+        GG_TOKEN: ${{ secrets.GG_TOKEN }}
+        DISCORD_TOKEN: ${{ secrets.TEST_DISCORD_TOKEN }}
+        DISCORD_CHANNEL_ID: ${{ secrets.TEST_DISCORD_CHANNEL_ID }}
+        DISCORD_TESTER_TOKEN: ${{ secrets.TEST_DISCORD_TESTER_TOKEN }}
+        GG_PLAYER_ID: 1116942
+        PLAYER_NAME: Luke
+        DEPLOYED_ENVIRONMENT: test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Generate dependencies
+        run: poetry export --with dev -f requirements.txt --output dev-requirements.txt --without-hashes
+      - name: Install dev dependencies
+        run: pip install --no-cache-dir --upgrade -r dev-requirements.txt
+      - name: Lint with ruff
+        run: ruff .
+      - name: Check formatting with black
+        run: black --check .
+      - name: Check docstring formatting with docformatter
+        run: docformatter --check luke_bot
+      - name: Type checking with mypy
+        run: mypy luke_bot
+      - name: Start bot for testing
+        run: python3 -m luke_bot & sleep 5
+      - name: Test with pytest
+        run: pytest
+
+  test_build:
+    if: github.event_name == 'push' && !contains(github.ref, 'refs/tags/')
+    needs: test
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -37,91 +75,62 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=test
-            type=semver, pattern={{version}}
-
       - name: Build and push Docker image
         uses: docker/build-push-action@v3
         with:
           context: .
+          build-args: |
+            PYTHON_VERSION=${{ env.PYTHON_VERSION }}
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-
-  test:
-    needs: build
+  release:
+    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+    needs: test
     runs-on: ubuntu-latest
     permissions:
-      packages: read
-    container:
-      image: "ghcr.io/tolxe/lukebot:test"
-      env:
-        GG_TOKEN: ${{ secrets.GG_TOKEN }}
-        DISCORD_TOKEN: ${{ secrets.TEST_DISCORD_TOKEN }}
-        DISCORD_CHANNEL_ID: ${{ secrets.TEST_DISCORD_CHANNEL_ID }}
-        DISCORD_TESTER_TOKEN: ${{ secrets.TEST_DISCORD_TESTER_TOKEN }}
-        GG_PLAYER_ID: 1116942
-        PLAYER_NAME: Luke
-        DEPLOYED_ENVIRONMENT: test
+      contents: read
+      packages: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Install dev dependencies
-        run: pip install --no-cache-dir --upgrade -r /code/dev-requirements.txt
-      - name: Lint with ruff
-        run: ruff .
-      - name: Check formatting with black
-        run: black --check .
-      - name: Check docstring formatting with docformatter
-        run: docformatter --check luke_bot
-      - name: Type checking with mypy
-        run: mypy luke_bot
-      - name: Start bot for testing
-        run: python3 -m luke_bot & sleep 2
-      - name: Test with pytest
-        run: pytest
 
-  retag_latest:
-    if: github.ref == 'refs/heads/main'
-    needs: test
-    runs-on: ubuntu-latest
-    container:
-      image: "gcr.io/go-containerregistry/crane:debug"
-    permissions:
-      packages: write
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
 
-    steps:
-      - name: downcase IMAGE_NAME
-        run: |
-          LOWERCASE=`echo "${{ env.IMAGE_NAME }}" | tr '[:upper:]' '[:lower:]'`
-          echo $LOWERCASE
-          echo "LOWERCASE=${LOWERCASE}" >>${GITHUB_ENV}
-      - name: Crane login
-        run: crane auth login -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }} ${{ env.REGISTRY }}
-      - name: Crane tag
-        run: crane tag ${{ env.REGISTRY }}/${LOWERCASE}:test latest
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
-  retag_tags:
-    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
-    needs: test
-    runs-on: ubuntu-latest
-    container:
-      image: "gcr.io/go-containerregistry/crane:debug"
-    permissions:
-      packages: write
+      - name: Log in to the Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-    steps:
-      - name: downcase IMAGE_NAME
-        run: |
-          LOWERCASE=`echo "${{ env.IMAGE_NAME }}" | tr '[:upper:]' '[:lower:]'`
-          echo $LOWERCASE
-          echo "LOWERCASE=${LOWERCASE}" >>${GITHUB_ENV}
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
 
-      - name: Crane login
-        run: crane auth login -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }} ${{ env.REGISTRY }}
-      - name: Crane tag
-        run: crane tag -v ${{ env.REGISTRY }}/${LOWERCASE}:test "${{ github.ref_name }}"
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          build-args: |
+            PYTHON_VERSION=${{ env.PYTHON_VERSION }}
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
