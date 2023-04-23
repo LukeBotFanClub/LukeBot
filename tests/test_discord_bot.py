@@ -22,11 +22,11 @@ TEST_BOT_ID = 1002654448826454097
 
 
 def request(
-        method: str,
-        path: str,
-        params: dict | None = None,
-        data: dict | None = None,
-        json: dict | None = None,
+    method: str,
+    path: str,
+    params: dict | None = None,
+    data: dict | None = None,
+    json: dict | None = None,
 ) -> requests.Response:
     params = params or {}
     data = data or {}

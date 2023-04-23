@@ -127,7 +127,7 @@ class LukeBot(commands.Bot):
         if text:
             self.refresh_updates_channel()
             if self.luke_updates_channel is not None and not same_update(
-                    text, self.most_recent_update
+                text, self.most_recent_update
             ):
                 self.most_recent_update = text
                 embed = Embed()
@@ -141,8 +141,8 @@ class LukeBot(commands.Bot):
         self.refresh_updates_channel()
         last_message = None
         async for message in self.luke_updates_channel.history(
-                limit=15,
-                oldest_first=False,
+            limit=15,
+            oldest_first=False,
         ):
             if message.author == self.user:
                 last_message = message

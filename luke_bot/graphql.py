@@ -32,10 +32,10 @@ class Null(GraphQLObject):
         return type(None)
 
     def __init__(
-            self,
-            item: None = None,
-            parent: GraphQLObject | None = None,
-            key: str | int | None = None,
+        self,
+        item: None = None,
+        parent: GraphQLObject | None = None,
+        key: str | int | None = None,
     ):
         self.parent = parent
         self.key = key
@@ -112,9 +112,9 @@ class GraphQLArray(list, GraphQLObject):
 
 
 def convert_to_graphql_data(
-        item: dict | list | None,
-        parent: GraphQLObject,
-        key: str | int,
+    item: dict | list | None,
+    parent: GraphQLObject,
+    key: str | int,
 ) -> GraphQLObject | dict | list | None:
     mapping: dict[type, Type[GraphQLObject]] = {
         dict: GraphQLData,
@@ -128,10 +128,10 @@ def convert_to_graphql_data(
 
 
 async def api_query(
-        query: str,
-        http_args: dict[str, Any] | None = None,
-        json_args: dict[str, Any] | None = None,
-        **variables,
+    query: str,
+    http_args: dict[str, Any] | None = None,
+    json_args: dict[str, Any] | None = None,
+    **variables,
 ) -> GraphQLData:
     """Performs a query against the start.gg API, raising an error on a failed
     request."""
@@ -144,10 +144,10 @@ async def api_query(
     headers = {"Authorization": f"Bearer {TOKEN}"}
     async with aiohttp.ClientSession() as session:
         async with session.post(
-                endpoint,
-                json=dict(query=query, variables=variables),
-                headers=headers,
-                **http_args,
+            endpoint,
+            json=dict(query=query, variables=variables),
+            headers=headers,
+            **http_args,
         ) as response:
             try:
                 response.raise_for_status()
