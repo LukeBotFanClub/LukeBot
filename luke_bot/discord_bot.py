@@ -59,7 +59,7 @@ class LukeCommands(commands.Cog):
         name="results",
         description=f"Post {PLAYER_NAME}'s latest results",
     )
-    async def results(self, interaction: Interaction, *args, **kwargs):
+    async def results(self, interaction: Interaction):
         """Manually invoke an update, and have the bot post it to the channel
         where it was invoked."""
         embed = Embed()
@@ -71,7 +71,7 @@ class LukeCommands(commands.Cog):
         name="last_run",
         description=f"Post {PLAYER_NAME}'s last bracket run results",
     )
-    async def last_run(self, interaction: Interaction, *args, **kwargs):
+    async def last_run(self, interaction: Interaction):
         text = await get_last_bracket_run()
         embed = Embed()
         embed.description = text
@@ -81,7 +81,7 @@ class LukeCommands(commands.Cog):
         name="current_set",
         description=f"Post {PLAYER_NAME}'s most recent ongoing set result'",
     )
-    async def current_set(self, interaction: Interaction, *args, **kwargs):
+    async def current_set(self, interaction: Interaction):
         text = await get_last_set()
         embed = Embed()
         embed.description = text

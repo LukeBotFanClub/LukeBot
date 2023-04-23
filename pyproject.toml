@@ -40,7 +40,7 @@ pytest = "^7.1.2"
 ruff = "^0.0.262"
 black = "^23.3.0"
 docformatter = { extras = ["tomli"], version = "^1.6.2" }
-mypy = "^1.2.0"
+pyright = "^1.1.304"
 requests = "^2.28.1"
 types-requests = "^2.28.6"
 
@@ -75,8 +75,5 @@ preview = true
 [tool.docformatter]
 recursive = true
 
-[tool.mypy]
-python_version = "3.11"
-namespace_packages = true
-packages = ["luke_bot", "tests"]
-check_untyped_defs = true
+[tool.pyright]
+pythonVersion = "3.11"

@@ -157,9 +157,8 @@ async def api_query(
                     responses = e.history
                     for r in responses:
                         if r is not None:
-                            j = await r.json()
-                            json_data.append(j)
-                    logger.warning(j)
+                            json_data.append(await r.json())
+                    logger.warning(json_data)
                 except (aiohttp.ContentTypeError, JSONDecodeError):
                     pass
                 raise e

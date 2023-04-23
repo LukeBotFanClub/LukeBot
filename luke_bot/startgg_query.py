@@ -85,7 +85,7 @@ async def get_last_result(num_results: int, gamertag: str):
             f"Failed to get result from response in `get_last_result`. {response = }."
             f" Error = {e} {e.args}"
         )
-        nodes = None
+        nodes = []
     return nodes
 
 
