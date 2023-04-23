@@ -63,7 +63,8 @@ class LukeCommands(commands.Cog):
         """Manually invoke an update, and have the bot post it to the channel
         where it was invoked."""
         embed = Embed()
-        embed.description = str(check_luke())
+        text = await check_luke()
+        embed.description = str(text)
         await interaction.response.send_message(embed=embed)
 
     @app_commands.command(
@@ -71,7 +72,7 @@ class LukeCommands(commands.Cog):
         description=f"Post {PLAYER_NAME}'s last bracket run results",
     )
     async def last_run(self, interaction: Interaction, *args, **kwargs):
-        text = get_last_bracket_run()
+        text = await get_last_bracket_run()
         embed = Embed()
         embed.description = text
         await interaction.response.send_message(embed=embed)
@@ -81,7 +82,7 @@ class LukeCommands(commands.Cog):
         description=f"Post {PLAYER_NAME}'s most recent ongoing set result'",
     )
     async def current_set(self, interaction: Interaction, *args, **kwargs):
-        text = get_last_set()
+        text = await get_last_set()
         embed = Embed()
         embed.description = text
         await interaction.response.send_message(embed=embed)
@@ -123,7 +124,7 @@ class LukeBot(commands.Bot):
 
         If there's new info, an update is posted to the updates channel
         """
-        text = check_luke()
+        text = await check_luke()
         if text:
             self.refresh_updates_channel()
             if self.luke_updates_channel is not None and not same_update(

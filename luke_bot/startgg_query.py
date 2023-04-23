@@ -15,7 +15,7 @@ PLAYER_NAME: str = settings.PLAYER_NAME
 DEFAULT_GAME_ID: int = settings.DEFAULT_GAME_ID
 
 
-def get_gamer_tag() -> str:
+async def get_gamer_tag() -> str:
     """Fetches Player's current Start.GG Epic Gamer Tag."""
     query = """
     query Luke($id: ID){
@@ -28,7 +28,7 @@ def get_gamer_tag() -> str:
         }
     }
     """
-    response = api_query(query, id=PLAYER_ID)
+    response = await api_query(query, id=PLAYER_ID)
     user = response["data"]["user"]
     if is_null(user):
         raise ValueError(f"No player found with ID {PLAYER_ID}")
@@ -36,7 +36,7 @@ def get_gamer_tag() -> str:
     return tag
 
 
-def get_last_result(num_results: int, gamertag: str):
+async def get_last_result(num_results: int, gamertag: str):
     """Returns the last N results from Player's profile."""
     query = """
     query LastResult($id: ID){
@@ -77,7 +77,7 @@ def get_last_result(num_results: int, gamertag: str):
     }
     }
     """ % (num_results, num_results, gamertag)
-    response = api_query(query, id=PLAYER_ID)
+    response = await api_query(query, id=PLAYER_ID)
     try:
         nodes = response["data"]["user"]["events"]["nodes"]
     except TypeError as e:
@@ -89,7 +89,7 @@ def get_last_result(num_results: int, gamertag: str):
     return nodes
 
 
-def get_upcoming_tournaments(id_: int, gamertag: str, num_results: int):
+async def get_upcoming_tournaments(id_: int, gamertag: str, num_results: int):
     query = """
     query Upcoming($id: ID){
     user(id: $id){
@@ -123,11 +123,11 @@ def get_upcoming_tournaments(id_: int, gamertag: str, num_results: int):
     }
     }
     """ % (num_results, gamertag)
-    response = api_query(query, id=id_)
+    response = await api_query(query, id=id_)
     return response["data"]["user"]["tournaments"]["nodes"][::-1]
 
 
-def process_results(response):
+async def process_results(response):
     """Processes list of Finalised Tournament Objects into a readable
     Format."""
     results = ""
@@ -147,7 +147,7 @@ def process_results(response):
     return results
 
 
-def process_upcoming(response):
+async def process_upcoming(response):
     """Processes list of Upcoming Tournament Objects into a readable format."""
     results = ""
     for event in response:
@@ -191,8 +191,8 @@ def process_upcoming(response):
                         event_id = events["id"]
                         break
 
-            set_scores = ongoing_results(event_id, entrant_id)
-            results += process_set_results(set_scores, entrant_id)
+            set_scores = await ongoing_results(event_id, entrant_id)
+            results += await process_set_results(set_scores, entrant_id)
 
         else:
             results += (
@@ -201,7 +201,7 @@ def process_upcoming(response):
     return results
 
 
-def process_set_results(set_scores: list, entrant_id: int):
+async def process_set_results(set_scores: list, entrant_id: int):
     results = ""
     results += f"Set Score{'s' if len(set_scores) > 1 else ''} -\n"
     for set_result in set_scores:
@@ -221,7 +221,7 @@ def process_set_results(set_scores: list, entrant_id: int):
     return results
 
 
-def ongoing_results(event_id: int, entrant_id: int):
+async def ongoing_results(event_id: int, entrant_id: int):
     query = """
     query InProgressResults($event_id: ID, $entrant_id: ID){
     event(id: $event_id){
@@ -242,7 +242,7 @@ def ongoing_results(event_id: int, entrant_id: int):
         }
     }
     """
-    response = api_query(query, event_id=event_id, entrant_id=entrant_id)
+    response = await api_query(query, event_id=event_id, entrant_id=entrant_id)
     event = response["data"]["event"]
     if not is_null(event):
         current_results = event["sets"]["nodes"][::-1]
@@ -256,50 +256,50 @@ STARTGG_ISSUE_MSG = (
 )
 
 
-def get_last_bracket_run() -> str:
+async def get_last_bracket_run() -> str:
     """Fetches the full bracket run from Luke's last tournament."""
-    gamertag = get_gamer_tag()
+    gamertag = await get_gamer_tag()
     results = ""
-    last_result = get_last_result(1, gamertag)
+    last_result = await get_last_result(1, gamertag)
     if is_null(last_result):
         return STARTGG_ISSUE_MSG
 
-    results += process_results(last_result)
+    results += await process_results(last_result)
 
     event_id = last_result[0]["id"]
     entrant_id = last_result[0]["standings"]["nodes"][0]["entrant"]["id"]
-    bracket_results = ongoing_results(event_id, entrant_id)
+    bracket_results = await ongoing_results(event_id, entrant_id)
 
-    results += process_set_results(bracket_results, entrant_id)
+    results += await process_set_results(bracket_results, entrant_id)
     return results
 
 
-def get_last_set() -> str:
+async def get_last_set() -> str:
     """Fetches the full bracket run from Luke's last tournament."""
-    gamertag = get_gamer_tag()
+    gamertag = await get_gamer_tag()
     results = ""
-    last_result = get_last_result(1, gamertag)
+    last_result = await get_last_result(1, gamertag)
     if is_null(last_result):
         return STARTGG_ISSUE_MSG
 
     event_id = last_result[0]["id"]
     entrant_id = last_result[0]["standings"]["nodes"][0]["entrant"]["id"]
-    bracket_results = ongoing_results(event_id, entrant_id)
+    bracket_results = await ongoing_results(event_id, entrant_id)
 
-    results += process_set_results([bracket_results[-1]], entrant_id)
+    results += await process_set_results([bracket_results[-1]], entrant_id)
     return results
 
 
-def check_luke() -> str | None:
+async def check_luke() -> str | None:
     results = ""
-    gamertag = get_gamer_tag()
-    last_result = get_last_result(1, gamertag)
+    gamertag = await get_gamer_tag()
+    last_result = await get_last_result(1, gamertag)
     if is_null(last_result):
         return None
-    upcoming = get_upcoming_tournaments(PLAYER_ID, gamertag, 5)
+    upcoming = await get_upcoming_tournaments(PLAYER_ID, gamertag, 5)
     results += f"**Current {PLAYER_NAME} Tag** - `{gamertag}`\n"
     results += "Last Result:\n"
-    results += process_results(last_result)
+    results += await process_results(last_result)
     results += f"Upcoming `{len(upcoming)}` Tournaments - \n"
-    results += process_upcoming(upcoming)
+    results += await process_upcoming(upcoming)
     return results
