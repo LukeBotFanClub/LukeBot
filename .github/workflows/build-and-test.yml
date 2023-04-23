@@ -13,7 +13,7 @@ jobs:
     permissions:
       packages: read
     container:
-      image: "ghcr.io/lukebotfanclub/poetry-python:${{ env.PYTHON_VERSION }}"
+      image: "ghcr.io/lukebotfanclub/poetry-python:3.11"
       env:
         GG_TOKEN: ${{ secrets.GG_TOKEN }}
         DISCORD_TOKEN: ${{ secrets.TEST_DISCORD_TOKEN }}
