@@ -26,19 +26,22 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.11"
 
-requests = "^2.28.1"
 python-dotenv = "^1.0.0"
 "discord.py" = "^2.0.1"
+aiohttp = "^3.7.4"
 
+[tool.poetry.group.dev]
+optional = true
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 pytest = "^7.1.2"
-ruff = "^0.0.261"
+ruff = "^0.0.262"
 black = "^23.3.0"
-docformatter = "^1.6.0"
+docformatter = { extras = ["tomli"], version = "^1.6.2" }
 mypy = "^1.2.0"
+requests = "^2.28.1"
 types-requests = "^2.28.6"
 
 [tool.poetry.urls]
@@ -66,9 +69,14 @@ unfixable = ["B"]
 "__init__.py" = ["E402"]
 
 [tool.black]
-target-version = ['py39']
+target-version = ['py311']
 preview = true
 
-[tool.mypy]
-namespace_packages = true
+[tool.docformatter]
+recursive = true
 
+[tool.mypy]
+python_version = "3.11"
+namespace_packages = true
+packages = ["luke_bot", "tests"]
+check_untyped_defs = true

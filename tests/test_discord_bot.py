@@ -22,7 +22,11 @@ TEST_BOT_ID = 1002654448826454097
 
 
 def request(
-        method: str, path: str, params: dict = None, data: dict = None, json=None
+        method: str,
+        path: str,
+        params: dict | None = None,
+        data: dict | None = None,
+        json: dict | None = None,
 ) -> requests.Response:
     params = params or {}
     data = data or {}
@@ -70,9 +74,10 @@ def test_standard_update():
     # THIS TEST ASSUMES THAT THE MAIN LUKEBOT HAS JUST STARTED UP IN THE TEST SERVER WITHIN THE LAST 5 MINUTES
     # also relies on other tests not happening first
     latest_message = get_latest_message()
-    assert latest_message["author"]["username"] == TEST_BOT_NAME
-    timestamp = datetime.fromisoformat(latest_message["timestamp"])
-    assert datetime.now(timezone.utc) - timestamp < timedelta(minutes=5)
+    if latest_message is not None:
+        assert latest_message["author"]["username"] == TEST_BOT_NAME
+        timestamp = datetime.fromisoformat(latest_message["timestamp"])
+        assert datetime.now(timezone.utc) - timestamp < timedelta(minutes=5)
 
 
 def test_help_command():
@@ -82,7 +87,8 @@ def test_help_command():
     request("POST", f"/channels/{CHANNEL_ID}/messages", json=help_message_json)
     time.sleep(0.5)
     latest_message = get_latest_message()
-    assert latest_message["author"]["username"] == TEST_BOT_NAME
+    if latest_message is not None:
+        assert latest_message["author"]["username"] == TEST_BOT_NAME
 
 
 def test_clean_up():

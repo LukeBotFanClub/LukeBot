@@ -1,6 +1,7 @@
 import logging
 
 from discord import Embed, Intents, Interaction, app_commands
+from discord.abc import Messageable
 from discord.ext import commands, tasks
 from discord.message import Message
 
@@ -15,8 +16,12 @@ HELP_TEXT = f"I report updates on {PLAYER_NAME} by polling the start.gg API."
 
 def same_update(update1: str, update2: str) -> bool:
     """Checks if 2 blocks of update text contain the same information."""
-    lines1 = update1.strip().splitlines()
-    lines2 = update2.strip().splitlines()
+
+    def clean(update: str) -> list[str]:
+        return update.strip().splitlines()
+
+    lines1 = clean(update1)
+    lines2 = clean(update2)
     if len(lines1) != len(lines2):
         # Different number of lines means definitely different
         return False
@@ -47,14 +52,14 @@ class LukeCommands(commands.Cog):
             await ctx.send(f"Synced commands: {synced_cmds}")
         else:
             await ctx.send(
-                "Failed to indentify guild. This shouldn't ever happen really.",
+                "Failed to identify guild. This shouldn't ever happen really.",
             )
 
     @app_commands.command(
         name="results",
         description=f"Post {PLAYER_NAME}'s latest results",
     )
-    async def results(self, interaction: Interaction):
+    async def results(self, interaction: Interaction, *args, **kwargs):
         """Manually invoke an update, and have the bot post it to the channel
         where it was invoked."""
         embed = Embed()
@@ -65,7 +70,7 @@ class LukeCommands(commands.Cog):
         name="last_run",
         description=f"Post {PLAYER_NAME}'s last bracket run results",
     )
-    async def last_run(self, interaction: Interaction):
+    async def last_run(self, interaction: Interaction, *args, **kwargs):
         text = get_last_bracket_run()
         embed = Embed()
         embed.description = text
@@ -75,7 +80,7 @@ class LukeCommands(commands.Cog):
         name="current_set",
         description=f"Post {PLAYER_NAME}'s most recent ongoing set result'",
     )
-    async def current_set(self, interaction: Interaction):
+    async def current_set(self, interaction: Interaction, *args, **kwargs):
         text = get_last_set()
         embed = Embed()
         embed.description = text
@@ -89,13 +94,28 @@ class LukeBot(commands.Bot):
         super().__init__(*args, **kwargs)
         self.channel_id: int = int(settings.DISCORD_CHANNEL_ID)
         self.most_recent_update: str = ""
-        self.luke_updates_channel = None
+        self._luke_updates_channel = None
+
+    @property
+    def luke_updates_channel(self) -> Messageable:
+        if not isinstance(self._luke_updates_channel, Messageable):
+            raise TypeError("Incompatible channel selected for updates")
+        return self._luke_updates_channel
+
+    def refresh_updates_channel(self):
+        if self._luke_updates_channel is None:
+            self._luke_updates_channel = self.get_channel(self.channel_id)
+
+    async def check_channel_type(self):
+        if not isinstance(self.luke_updates_channel, Messageable):
+            raise TypeError("Incompatible channel selected for updates")
 
     async def setup_hook(self) -> None:
         self.send_to_luke_updates.start()
 
     async def on_ready(self):
-        logger.info(f"Logged in as {self.user} (ID: {self.user.id})")
+        if self.user is not None:
+            logger.info(f"Logged in as {self.user} (ID: {self.user.id})")
 
     @tasks.loop(seconds=int(settings.BOT_POLLING_PERIOD))
     async def send_to_luke_updates(self):
@@ -105,8 +125,7 @@ class LukeBot(commands.Bot):
         """
         text = check_luke()
         if text:
-            if self.luke_updates_channel is None:
-                self.luke_updates_channel = self.get_channel(self.channel_id)
+            self.refresh_updates_channel()
             if self.luke_updates_channel is not None and not same_update(
                     text, self.most_recent_update
             ):
@@ -119,8 +138,7 @@ class LukeBot(commands.Bot):
     async def before_my_task(self):
         await self.wait_until_ready()  # wait until the bot logs in
         # Set most recent update to the content of the most recent message
-        if self.luke_updates_channel is None:
-            self.luke_updates_channel = self.get_channel(self.channel_id)
+        self.refresh_updates_channel()
         last_message = None
         async for message in self.luke_updates_channel.history(
                 limit=15,

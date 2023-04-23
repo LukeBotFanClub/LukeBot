@@ -1,6 +1,3 @@
-import logging
-import sys
+from .log import initialise_logger
 
-logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.StreamHandler(sys.stdout))
+initialise_logger()

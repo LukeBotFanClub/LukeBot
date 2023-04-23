@@ -1,15 +1,30 @@
 import dataclasses
 import logging
 import os
-from typing import Literal
+from typing import Any, Literal, Self, TypeVar, cast, get_args, get_origin
 
 from dotenv import load_dotenv
 
-load_dotenv()
 logger = logging.getLogger()
 
+T = TypeVar("T")
 
-@dataclasses.dataclass
+
+def coerce_type(value: str, to_type: type[T]) -> T:
+    new_value: Any
+    if get_origin(to_type) is Literal:
+        args: tuple[str, ...] = get_args(to_type)
+        if value not in args:
+            raise ValueError(f"{value} not valid for Literal{[*args]}")
+        new_value = value
+    elif issubclass(to_type, (str, int, float)):
+        new_value = to_type(value)
+    else:
+        raise NotImplementedError
+    return cast(T, new_value)
+
+
+@dataclasses.dataclass(kw_only=True)
 class Settings:
     """Defines the environment variables required to run the bot."""
 
@@ -23,15 +38,15 @@ class Settings:
     DEFAULT_GAME_ID: int = 1386
 
     @classmethod
-    def from_environment(cls):
+    def from_environment(cls) -> Self:
         logger.info("Checking environment variables...")
-        settings_ = cls(
-            **{
-                f.name: os.getenv(f.name)
-                for f in dataclasses.fields(cls)
-                if os.getenv(f.name) is not None
-            }
-        )
+        load_dotenv()
+        settings_dict = {
+            f.name: coerce_type(v, f.type)
+            for f in dataclasses.fields(cls)
+            if (v := os.getenv(f.name)) is not None
+        }
+        settings_ = cls(**settings_dict)
         logger.info("Environment variables validated")
         return settings_
 

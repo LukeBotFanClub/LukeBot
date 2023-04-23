@@ -1,14 +1,11 @@
 import logging
 from datetime import datetime, timedelta
-from typing import Any, Dict
 
-import requests
-
+from .graphql import api_query, is_null
 from .settings import settings
 
 logger = logging.getLogger(__name__)
 
-TOKEN: str = settings.GG_TOKEN
 
 # Player's Start GG Info
 # Slug (changes with the tag)
@@ -16,39 +13,6 @@ TOKEN: str = settings.GG_TOKEN
 PLAYER_ID: int = int(settings.GG_PLAYER_ID)
 PLAYER_NAME: str = settings.PLAYER_NAME
 DEFAULT_GAME_ID: int = settings.DEFAULT_GAME_ID
-
-
-def api_query(
-        query: str,
-        requests_args: Dict[str, Any] = None,
-        json_args: Dict[str, Any] = None,
-        **variables,
-) -> dict:
-    """Performs a query against the start.gg API, raising an error on a failed
-    request."""
-    if requests_args is None:
-        requests_args = dict()
-    if json_args is None:
-        json_args = dict()
-
-    endpoint = "https://api.start.gg/gql/alpha"
-    headers = {"Authorization": f"Bearer {TOKEN}"}
-    response = requests.post(
-        endpoint,
-        json=dict(query=query, variables=variables),
-        headers=headers,
-        **requests_args,
-    )
-    try:
-        response.raise_for_status()
-    except requests.HTTPError as e:
-        try:
-            logger.warning(e.response.json())
-        except requests.JSONDecodeError:
-            pass
-        raise e
-
-    return response.json(**json_args)
 
 
 def get_gamer_tag() -> str:
@@ -65,7 +29,10 @@ def get_gamer_tag() -> str:
     }
     """
     response = api_query(query, id=PLAYER_ID)
-    tag = response["data"]["user"]["player"]["gamerTag"]
+    user = response["data"]["user"]
+    if is_null(user):
+        raise ValueError(f"No player found with ID {PLAYER_ID}")
+    tag = user["player"]["gamerTag"]
     return tag
 
 
@@ -240,10 +207,12 @@ def process_set_results(set_scores: list, entrant_id: int):
     for set_result in set_scores:
         results += f"`{set_result['fullRoundText']}` -\n"
         if set_result["displayScore"]:
-            results += (
-                f"{set_result['displayScore']}                "
-                f" {':crown:' if entrant_id == set_result['winnerId'] else ':regional_indicator_f:'}\n"
+            emoji = (
+                ":crown:"
+                if entrant_id == set_result["winnerId"]
+                else ":regional_indicator_f:"
             )
+            results += f"{set_result['displayScore']}                 {emoji}\n"
         else:
             results += (
                 f"{PLAYER_NAME} is waiting for their opponent in"
@@ -275,20 +244,25 @@ def ongoing_results(event_id: int, entrant_id: int):
     """
     response = api_query(query, event_id=event_id, entrant_id=entrant_id)
     event = response["data"]["event"]
-    if event is not None:
+    if not is_null(event):
         current_results = event["sets"]["nodes"][::-1]
     else:
         current_results = []
     return current_results
 
 
-def get_last_bracket_run():
+STARTGG_ISSUE_MSG = (
+    "There was an issue fetching data from start.gg, please try again later"
+)
+
+
+def get_last_bracket_run() -> str:
     """Fetches the full bracket run from Luke's last tournament."""
     gamertag = get_gamer_tag()
     results = ""
     last_result = get_last_result(1, gamertag)
-    if last_result is None:
-        return "There was an issue fetching data from start.gg, please try again later"
+    if is_null(last_result):
+        return STARTGG_ISSUE_MSG
 
     results += process_results(last_result)
 
@@ -300,13 +274,13 @@ def get_last_bracket_run():
     return results
 
 
-def get_last_set():
+def get_last_set() -> str:
     """Fetches the full bracket run from Luke's last tournament."""
     gamertag = get_gamer_tag()
     results = ""
     last_result = get_last_result(1, gamertag)
-    if last_result is None:
-        return "There was an issue fetching data from start.gg, please try again later"
+    if is_null(last_result):
+        return STARTGG_ISSUE_MSG
 
     event_id = last_result[0]["id"]
     entrant_id = last_result[0]["standings"]["nodes"][0]["entrant"]["id"]
@@ -316,11 +290,11 @@ def get_last_set():
     return results
 
 
-def check_luke():
+def check_luke() -> str | None:
     results = ""
     gamertag = get_gamer_tag()
     last_result = get_last_result(1, gamertag)
-    if last_result is None:
+    if is_null(last_result):
         return None
     upcoming = get_upcoming_tournaments(PLAYER_ID, gamertag, 5)
     results += f"**Current {PLAYER_NAME} Tag** - `{gamertag}`\n"

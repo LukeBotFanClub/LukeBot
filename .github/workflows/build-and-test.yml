@@ -77,7 +77,7 @@ jobs:
       - name: Check formatting with black
         run: black --check .
       - name: Check docstring formatting with docformatter
-        run: docformatter --check -r .
+        run: docformatter --check luke_bot
       - name: Type checking with mypy
         run: mypy luke_bot
       - name: Start bot for testing
