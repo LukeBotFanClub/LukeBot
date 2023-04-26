@@ -1,7 +1,7 @@
 import dataclasses
 import logging
 import os
-from typing import Any, Literal, Self, TypeVar, cast, get_args, get_origin
+from typing import Any, Literal, Self, TypeVar, cast, get_args, get_origin, Union
 
 from dotenv import load_dotenv
 
@@ -17,6 +17,14 @@ def coerce_type(value: str, to_type: type[T]) -> T:
         if value not in args:
             raise ValueError(f"{value} not valid for Literal{[*args]}")
         new_value = value
+    elif get_origin(to_type) is Union:
+        args: tuple[type[T], ...] = get_args(to_type)
+        for arg in args:
+            try:
+                return coerce_type(value, arg)
+            except NotImplementedError:
+                pass
+        raise NotImplementedError
     elif issubclass(to_type, (str, int, float)):
         new_value = to_type(value)
     else:
@@ -36,6 +44,8 @@ class Settings:
     DEPLOYED_ENVIRONMENT: Literal["dev", "test", "prod"]
     BOT_POLLING_PERIOD: int = 30
     DEFAULT_GAME_ID: int = 1386
+    LOG_FILEPATH: str | None = None
+    LOG_LEVEL: int | Literal["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"] = logging.DEBUG
 
     @classmethod
     def from_environment(cls) -> Self:

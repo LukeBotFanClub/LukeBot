@@ -4,7 +4,7 @@ import logging
 from .discord_bot import get_luke_bot
 from .settings import settings
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 async def main():
