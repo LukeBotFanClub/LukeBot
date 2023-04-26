@@ -1,7 +1,7 @@
 import dataclasses
 import logging
 import os
-from typing import Any, Literal, Self, TypeVar, cast, get_args, get_origin, Union
+from typing import Any, Literal, Self, TypeVar, Union, cast, get_args, get_origin
 
 from dotenv import load_dotenv
 
@@ -45,7 +45,9 @@ class Settings:
     BOT_POLLING_PERIOD: int = 30
     DEFAULT_GAME_ID: int = 1386
     LOG_FILEPATH: str | None = None
-    LOG_LEVEL: int | Literal["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"] = logging.DEBUG
+    LOG_LEVEL: int | Literal[
+        "CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"
+    ] = logging.DEBUG
 
     @classmethod
     def from_environment(cls) -> Self:
