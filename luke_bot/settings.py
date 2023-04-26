@@ -18,10 +18,10 @@ def coerce_type(value: str, to_type: type[T]) -> T:
             raise ValueError(f"{value} not valid for Literal{[*args]}")
         new_value = value
     elif get_origin(to_type) is Union:
-        args: tuple[type[T], ...] = get_args(to_type)
-        for arg in args:
+        types: tuple[type[T], ...] = get_args(to_type)
+        for t in types:
             try:
-                return coerce_type(value, arg)
+                return coerce_type(value, t)
             except NotImplementedError:
                 pass
         raise NotImplementedError
