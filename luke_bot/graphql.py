@@ -13,14 +13,20 @@ TOKEN: str = settings.GG_TOKEN
 
 
 class GraphQLObject(ABC):
-    @abstractmethod
-    def __init__(self, item, parent: "GraphQLObject", key: str | int):  # noqa
-        raise NotImplementedError
+    def __init__(
+        self,
+        item,  # noqa: F841
+        *args,
+        **kwargs,
+    ):
+        self.parent = kwargs.pop("parent")
+        self.key = kwargs.pop("key")
+        super().__init__(*args, **kwargs)
 
     @classmethod
     @abstractmethod
     def _builtin(cls) -> type:
-        raise NotImplementedError
+        return object
 
     def as_builtin(self):
         return self._builtin()(self)
@@ -34,11 +40,11 @@ class Null(GraphQLObject):
     def __init__(
         self,
         item: None = None,
+        /,
         parent: GraphQLObject | None = None,
         key: str | int | None = None,
     ):
-        self.parent = parent
-        self.key = key
+        super().__init__(item, parent=parent, key=key)
         self.none = item
 
     def __getitem__(self, item):
@@ -63,7 +69,7 @@ def is_null(item: Any) -> bool:
     return (item is None) or isinstance(item, Null)
 
 
-class GraphQLData(dict, GraphQLObject):
+class GraphQLData(GraphQLObject, dict):
     @classmethod
     def _builtin(cls) -> type:
         return dict
@@ -71,13 +77,19 @@ class GraphQLData(dict, GraphQLObject):
     def __str__(self):
         return f"GraphQLData({super().__str__()})"
 
-    def __init__(self, item: dict | None = None, /, **kwargs):
+    def __init__(
+        self,
+        item: dict | None = None,
+        /,
+        parent: GraphQLObject | None = None,
+        key: str | int | None = None,
+    ):
         if item is not None:
             item = {k: convert_to_graphql_data(v, self, k) for k, v in item.items()}
             arg = [item]
         else:
             arg = []
-        super().__init__(*arg, **kwargs)
+        super().__init__(*arg, parent=parent, key=key)
 
     def __getitem__(self, item):
         try:
@@ -87,7 +99,7 @@ class GraphQLData(dict, GraphQLObject):
             return Null(parent=self, key=item)
 
 
-class GraphQLArray(list, GraphQLObject):
+class GraphQLArray(GraphQLObject, list):
     @classmethod
     def _builtin(cls) -> type:
         return list
@@ -95,13 +107,19 @@ class GraphQLArray(list, GraphQLObject):
     def __str__(self):
         return f"GraphQLArray({super().__str__()})"
 
-    def __init__(self, item: list | None = None, /, **kwargs):
+    def __init__(
+        self,
+        item: list | None = None,
+        /,
+        parent: GraphQLObject | None = None,
+        key: str | int | None = None,
+    ):
         if item is not None:
             item = [convert_to_graphql_data(v, self, i) for i, v in enumerate(item)]
             arg = [item]
         else:
             arg = []
-        super().__init__(*arg, **kwargs)
+        super().__init__(*arg, parent=parent, key=key)
 
     def __getitem__(self, item):
         try:
