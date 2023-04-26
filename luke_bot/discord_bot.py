@@ -65,6 +65,7 @@ class LukeCommands(commands.Cog):
         embed = Embed()
         text = await check_luke()
         embed.description = str(text)
+        logger.debug(f"Invoked /results: {text}")
         await interaction.response.send_message(embed=embed)
 
     @app_commands.command(
@@ -75,6 +76,7 @@ class LukeCommands(commands.Cog):
         text = await get_last_bracket_run()
         embed = Embed()
         embed.description = text
+        logger.debug(f"Invoked /last_run: {text}")
         await interaction.response.send_message(embed=embed)
 
     @app_commands.command(
@@ -133,11 +135,12 @@ class LukeBot(commands.Bot):
                 self.most_recent_update = text
                 embed = Embed()
                 embed.description = self.most_recent_update
+                logger.debug(f"Posting regular update: {text}")
                 await self.luke_updates_channel.send(embed=embed)
 
     @send_to_luke_updates.before_loop
     async def before_my_task(self):
-        await self.wait_until_ready()  # wait until the bot logs in
+        await self.wait_until_ready()
         # Set most recent update to the content of the most recent message
         self.refresh_updates_channel()
         last_message = None

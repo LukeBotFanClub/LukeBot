@@ -1,7 +1,8 @@
 import dataclasses
 import logging
 import os
-from typing import Any, Literal, Self, TypeVar, Union, cast, get_args, get_origin
+from types import UnionType
+from typing import Any, Literal, Self, TypeVar, cast, get_args, get_origin
 
 from dotenv import load_dotenv
 
@@ -12,21 +13,26 @@ T = TypeVar("T")
 
 def coerce_type(value: str, to_type: type[T]) -> T:
     new_value: Any
-    if get_origin(to_type) is Literal:
+    origin = get_origin(to_type)
+    if origin is Literal:
         args: tuple[str, ...] = get_args(to_type)
         if value not in args:
             raise ValueError(f"{value} not valid for Literal{[*args]}")
         new_value = value
-    elif get_origin(to_type) is Union:
+    elif origin is UnionType:
         types: tuple[type[T], ...] = get_args(to_type)
         for t in types:
             try:
-                return coerce_type(value, t)
+                new_value = coerce_type(value, t)
+                break
             except NotImplementedError:
-                pass
-        raise NotImplementedError
-    elif issubclass(to_type, (str, int, float)):
+                continue
+        else:
+            raise NotImplementedError
+    elif origin is None and issubclass(to_type, (str, int, float)):
         new_value = to_type(value)
+    elif to_type is None:
+        new_value = None
     else:
         raise NotImplementedError
     return cast(T, new_value)
