@@ -925,7 +925,7 @@ pydantic = "^1.10"
 [package.source]
 type = "git"
 url = "https://github.com/LukeBotFanClub/startgg.git"
-reference = "HEAD"
+reference = "main"
 resolved_reference = "110fff9d22cc91484f4ef04af5737415a8cfa81d"
 
 [[package]]
@@ -1098,4 +1098,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "78b028e89c079f0a5f42351570906f67040d870b1d90d411331d1a3178ee5077"
+content-hash = "1b3cb611988233cbd1b5e91aef404aa66b4039264bdaed24aad15fe510830996"
