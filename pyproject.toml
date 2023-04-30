@@ -30,7 +30,8 @@ python = "^3.11"
 
 python-dotenv = "^1.0.0"
 "discord.py" = "^2.0.1"
-aiohttp = "^3.7.4"
+pydantic = "^1.10"
+startgg = { git = "https://github.com/LukeBotFanClub/startgg.git" }
 
 [tool.poetry.group.dev]
 optional = true

@@ -5,12 +5,12 @@ from discord.abc import Messageable
 from discord.ext import commands, tasks
 from discord.message import Message
 
-from .settings import settings
+from .settings import bot_settings
 from .startgg_query import check_luke, get_last_bracket_run, get_last_set
 
 logger = logging.getLogger(__name__)
 
-PLAYER_NAME: str = settings.PLAYER_NAME
+PLAYER_NAME: str = bot_settings.PLAYER_NAME
 HELP_TEXT = f"I report updates on {PLAYER_NAME} by polling the start.gg API."
 
 
@@ -95,7 +95,7 @@ class LukeBot(commands.Bot):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.channel_id: int = int(settings.DISCORD_CHANNEL_ID)
+        self.channel_id: int = int(bot_settings.DISCORD_CHANNEL_ID)
         self.most_recent_update: str = ""
         self._luke_updates_channel = None
 
@@ -120,7 +120,7 @@ class LukeBot(commands.Bot):
         if self.user is not None:
             logger.info(f"Logged in as {self.user} (ID: {self.user.id})")
 
-    @tasks.loop(seconds=int(settings.BOT_POLLING_PERIOD))
+    @tasks.loop(seconds=int(bot_settings.BOT_POLLING_PERIOD))
     async def send_to_luke_updates(self):
         """Polls the start.gg API for latest results.
 
@@ -158,7 +158,7 @@ class LukeBot(commands.Bot):
                 self.most_recent_update = content
 
     async def process_commands(self, message: Message, /) -> None:
-        if settings.DEPLOYED_ENVIRONMENT != "test":
+        if bot_settings.DEPLOYED_ENVIRONMENT != "test":
             # Allows tester bot to invoke commands
             await super().process_commands(message)
         else:

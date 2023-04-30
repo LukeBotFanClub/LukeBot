@@ -1,8 +1,10 @@
 import logging
 from datetime import datetime, timedelta
 
-from .graphql import api_query, is_null
-from .settings import settings
+import startgg
+from startgg import StartGGClient
+
+from .settings import bot_settings
 
 logger = logging.getLogger(__name__)
 
@@ -10,189 +12,99 @@ logger = logging.getLogger(__name__)
 # Player's Start GG Info
 # Slug (changes with the tag)
 # user/e4082a74 for luke
-PLAYER_ID: int = int(settings.GG_PLAYER_ID)
-PLAYER_NAME: str = settings.PLAYER_NAME
-DEFAULT_GAME_ID: int = settings.DEFAULT_GAME_ID
+PLAYER_ID: str = str(bot_settings.GG_PLAYER_ID)
+PLAYER_NAME: str = bot_settings.PLAYER_NAME
+DEFAULT_GAME_ID: str = str(bot_settings.DEFAULT_GAME_ID)
+WINNER_EMOTE: str = ":crown:"
+LOSER_EMOTE: str = ":regional_indicator_f:"
 
 
-async def get_gamer_tag() -> str:
-    """Fetches Player's current Start.GG Epic Gamer Tag."""
-    query = """
-    query Luke($id: ID){
-    user(id: $id){
-        id,
-        slug,
-        player{
-            gamerTag
-            }
-        }
-    }
-    """
-    response = await api_query(query, id=PLAYER_ID)
-    user = response["data"]["user"]
-    if is_null(user):
-        raise ValueError(f"No player found with ID {PLAYER_ID}")
-    tag = user["player"]["gamerTag"]
-    return tag
+def get_client() -> StartGGClient:
+    client = StartGGClient(
+        url="https://api.start.gg/gql/alpha",
+        headers={"Authorization": f"Bearer {bot_settings.GG_TOKEN.get_secret_value()}"},
+    )
+    return client
 
 
-async def get_last_result(num_results: int, gamertag: str):
-    """Returns the last N results from Player's profile."""
-    query = """
-    query LastResult($id: ID){
-    user(id: $id){
-        events(query:{
-          perPage: %d,
-          page:1
-        }) {
-          nodes {
-            tournament {
-              name
-              id
-              shortSlug
-            }
-            id
-            name
-            numEntrants
-            state
-            standings(query:{
-              perPage: %d,
-              page:1
-              filter:{
-                search:{
-                  searchString:"%s"
-                }
-                }
-              }) {
-              nodes {
-                entrant {
-                    id
-                }
-                placement
-                isFinal
-              }
-            }
-          }
-        }
-    }
-    }
-    """ % (num_results, num_results, gamertag)
-    response = await api_query(query, id=PLAYER_ID)
-    try:
-        nodes = response["data"]["user"]["events"]["nodes"]
-    except TypeError as e:
-        logger.warning(
-            f"Failed to get result from response in `get_last_result`. {response = }."
-            f" Error = {e} {e.args}"
-        )
-        nodes = []
-    return nodes
-
-
-async def get_upcoming_tournaments(id_: int, gamertag: str, num_results: int):
-    query = """
-    query Upcoming($id: ID){
-    user(id: $id){
-        tournaments(query: {
-            perPage: %d,
-            page: 1,
-            filter: {
-                upcoming:true
-            }
-        }){
-            nodes{
-                name
-                id
-                shortSlug
-                startAt
-                state
-                events(limit:3){
-                  id
-                  name
-                  videogame {
-                      id
-                  }
-                  entrants(query:{filter:{name:"%s"}}){
-                    nodes{
-                      id
-                    }
-                  }
-                }
-            }
-        }
-    }
-    }
-    """ % (num_results, gamertag)
-    response = await api_query(query, id=id_)
-    return response["data"]["user"]["tournaments"]["nodes"][::-1]
-
-
-async def process_results(response):
+async def process_results(
+    results_list: list[startgg.LastResultUserEventsNodes] | None,
+) -> str:
     """Processes list of Finalised Tournament Objects into a readable
     Format."""
+    if results_list is None:
+        return ""
     results = ""
-    for event in response:
-        results += f"Tournament - `{event['tournament']['name']}`"
-        slug = event["tournament"]["shortSlug"]
+    for event in results_list:
+        results += f"Tournament - `{event.tournament.name}`"
+        slug = event.tournament.short_slug
         if slug:
-            results += (
-                f" - [Start.GG](https://start.gg/{event['tournament']['shortSlug']})"
-            )
+            results += f" - [Start.GG](https://start.gg/{slug})"
         results += "\n"
 
-        results += f"PROGRESS : `{event['state']}`\n"
-        placing = event["standings"]["nodes"][0]["placement"]
-        results += f"Placement : `{placing}` in `{event['numEntrants']}`\n\n"
+        results += f"PROGRESS : `{event.state.value}`\n"
+        standings = event.standings.nodes
+        if standings:
+            placing = event.standings.nodes[0].placement
+            results += f"Placement : `{placing}` in `{event.num_entrants}`\n\n"
 
     return results
 
 
-async def process_upcoming(response):
+async def process_upcoming(
+    results_list: list[startgg.UpcomingUserTournamentsNodes] | None,
+    client: StartGGClient = None,
+) -> str:
+    if client is None:
+        client = get_client()
     """Processes list of Upcoming Tournament Objects into a readable format."""
+    if results_list is None:
+        return ""
     results = ""
-    for event in response:
-        results += f"Tournament - `{event['name']}`"
-        slug = event["shortSlug"]
+    for tournament in results_list:
+        results += f"Tournament - `{tournament.name}`"
+        slug = tournament.short_slug
         if slug:
-            results += f" - [Start.GG](https://start.gg/{event['shortSlug']})"
+            results += f" - [Start.GG](https://start.gg/{slug})"
         results += "\n"
-        event_start = datetime.utcfromtimestamp(event["startAt"])
-        event_starts_in = event_start - datetime.utcnow()
+        now = datetime.now(tz=tournament.start_at.tzinfo)
+        tournament_starts_in = tournament.start_at - now
         days, hours, minutes = (
-            event_starts_in.days,
-            event_starts_in.seconds // 3600,
-            event_starts_in.seconds // 60 % 60,
+            tournament_starts_in.days,
+            tournament_starts_in.seconds // 3600,
+            tournament_starts_in.seconds // 60 % 60,
         )
-        if event_starts_in < timedelta():
+        if tournament_starts_in < timedelta():
             results += (
                 f"Started `{abs(days)}` days, `{hours}` hours, `{minutes}` minutes"
                 " ago\n"
             )
-            event_id = event["id"]
-            entrant_id = -1
-            # Filter for Smash Ultimate and 'Single' in event name
-            for events in event["events"]:
-                if (
-                    "single" in events["name"].lower()
-                    and events["videogame"]["id"] == DEFAULT_GAME_ID
-                    and events["entrants"]["nodes"]
-                ):
-                    entrant_id = events["entrants"]["nodes"][0]["id"]
-                    event_id = events["id"]
-                    break
-            # If still empty, take any Smash Ultimate event
-            if entrant_id == -1:
-                for events in event["events"]:
-                    if (
-                        events["videogame"]["id"] == DEFAULT_GAME_ID
-                        and events["entrants"]["nodes"]
-                    ):
-                        entrant_id = events["entrants"]["nodes"][0]["id"]
-                        event_id = events["id"]
-                        break
 
-            set_scores = await ongoing_results(event_id, entrant_id)
-            results += await process_set_results(set_scores, entrant_id)
+            relevant_events = [
+                event_
+                for event_ in tournament.events
+                if event_.videogame.id == DEFAULT_GAME_ID and event_.entrants.nodes
+            ]
+            if relevant_events:
+                entrant_id = None
+                # Filter for Smash Ultimate and 'Single' in event name
+                for event in relevant_events:
+                    if "single" in event.name.lower():
+                        selected_event = event
+                        break
+                else:
+                    # Fallback to the first event
+                    selected_event = relevant_events[0]
+                entrants = selected_event.entrants.nodes
+                if entrants:
+                    entrant_id = entrants[0].id
+                event_id = selected_event.id
+
+                in_progress_results = await client.in_progress_results(
+                    event_id, entrant_id
+                )
+                set_scores = in_progress_results.event.sets.nodes[::-1]
+                results += await process_set_results(set_scores, entrant_id)
 
         else:
             results += (
@@ -201,105 +113,83 @@ async def process_upcoming(response):
     return results
 
 
-async def process_set_results(set_scores: list, entrant_id: int):
+async def process_set_results(
+    set_scores: list[startgg.InProgressResultsEventSetsNodes] | None,
+    entrant_id: str | None,
+) -> str:
+    if not set_scores:
+        return ""
     results = ""
     results += f"Set Score{'s' if len(set_scores) > 1 else ''} -\n"
     for set_result in set_scores:
-        results += f"`{set_result['fullRoundText']}` -\n"
-        if set_result["displayScore"]:
-            emoji = (
-                ":crown:"
-                if entrant_id == set_result["winnerId"]
-                else ":regional_indicator_f:"
-            )
-            results += f"{set_result['displayScore']}                 {emoji}\n"
+        results += f"`{set_result.full_round_text}` -\n"
+        if set_result.display_score:
+            emoji = WINNER_EMOTE if entrant_id == set_result.winner_id else LOSER_EMOTE
+            results += f"{set_result.display_score}{emoji:>17}\n"
         else:
             results += (
                 f"{PLAYER_NAME} is waiting for their opponent in"
-                f" {set_result['fullRoundText']}\n"
+                f" {set_result.full_round_text}\n"
             )
     return results
 
 
-async def ongoing_results(event_id: int, entrant_id: int):
-    query = """
-    query InProgressResults($event_id: ID, $entrant_id: ID){
-    event(id: $event_id){
-        tournament{
-            name
-        }
-        name
-        sets(filters:{entrantIds:[$entrant_id]}){
-            nodes{
-                fullRoundText
-                displayScore
-                wPlacement
-                lPlacement
-                winnerId
-                round
-            }
-        }
-        }
-    }
-    """
-    response = await api_query(query, event_id=event_id, entrant_id=entrant_id)
-    event = response["data"]["event"]
-    if not is_null(event):
-        current_results = event["sets"]["nodes"][::-1]
-    else:
-        current_results = []
-    return current_results
-
-
-STARTGG_ISSUE_MSG = (
-    "There was an issue fetching data from start.gg, please try again later"
-)
-
-
-async def get_last_bracket_run() -> str:
+async def get_last_bracket_run(client: StartGGClient = None) -> str:
     """Fetches the full bracket run from Luke's last tournament."""
-    gamertag = await get_gamer_tag()
+    if client is None:
+        client = get_client()
+    gamertag_response = await client.gamer_tag(bot_settings.GG_PLAYER_ID)
+    gamertag = gamertag_response.user.player.gamer_tag
     results = ""
-    last_result = await get_last_result(1, gamertag)
-    if is_null(last_result):
-        return STARTGG_ISSUE_MSG
-
+    last_result_response = await client.last_result(
+        bot_settings.GG_PLAYER_ID, 1, gamertag
+    )
+    last_result = last_result_response.user.events.nodes
     results += await process_results(last_result)
 
-    event_id = last_result[0]["id"]
-    entrant_id = last_result[0]["standings"]["nodes"][0]["entrant"]["id"]
-    bracket_results = await ongoing_results(event_id, entrant_id)
-
+    event_id = last_result[0].id
+    entrant_id = last_result[0].standings.nodes[0].entrant.id
+    bracket_results_response = await client.in_progress_results(event_id, entrant_id)
+    bracket_results = bracket_results_response.event.sets.nodes
     results += await process_set_results(bracket_results, entrant_id)
     return results
 
 
-async def get_last_set() -> str:
+async def get_last_set(client: StartGGClient = None) -> str:
     """Fetches the full bracket run from Luke's last tournament."""
-    gamertag = await get_gamer_tag()
+    if client is None:
+        client = get_client()
+    gamertag_response = await client.gamer_tag(bot_settings.GG_PLAYER_ID)
+    gamertag = gamertag_response.user.player.gamer_tag
     results = ""
-    last_result = await get_last_result(1, gamertag)
-    if is_null(last_result):
-        return STARTGG_ISSUE_MSG
-
-    event_id = last_result[0]["id"]
-    entrant_id = last_result[0]["standings"]["nodes"][0]["entrant"]["id"]
-    bracket_results = await ongoing_results(event_id, entrant_id)
+    last_result_response = await client.last_result(
+        bot_settings.GG_PLAYER_ID, 1, gamertag
+    )
+    last_result = last_result_response.user.events.nodes
+    event_id = last_result[0].id
+    entrant_id = last_result[0].standings.nodes[0].entrant.id
+    bracket_results_response = await client.in_progress_results(event_id, entrant_id)
+    bracket_results = bracket_results_response.event.sets.nodes
 
     results += await process_set_results([bracket_results[-1]], entrant_id)
     return results
 
 
 async def check_luke() -> str | None:
+    client = get_client()
+    gamertag_response = await client.gamer_tag(bot_settings.GG_PLAYER_ID)
+    gamertag = gamertag_response.user.player.gamer_tag
+    last_result_response = await client.last_result(
+        bot_settings.GG_PLAYER_ID, 1, gamertag
+    )
+    last_result = last_result_response.user.events.nodes
+    upcoming_response = await client.upcoming(bot_settings.GG_PLAYER_ID, 5, gamertag)
+    upcoming = upcoming_response.user.tournaments.nodes[::-1]
+
     results = ""
-    gamertag = await get_gamer_tag()
-    last_result = await get_last_result(1, gamertag)
-    if is_null(last_result):
-        return None
-    upcoming = await get_upcoming_tournaments(PLAYER_ID, gamertag, 5)
     results += f"**Current {PLAYER_NAME} Tag** - `{gamertag}`\n"
     results += "Last Result:\n"
     results += await process_results(last_result)
     results += f"Upcoming `{len(upcoming)}` Tournaments - \n"
-    results += await process_upcoming(upcoming)
+    results += await process_upcoming(upcoming, client)
     return results
