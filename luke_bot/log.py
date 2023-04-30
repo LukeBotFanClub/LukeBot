@@ -5,7 +5,7 @@ from .settings import bot_settings
 
 
 def initialise_logger():
-    handlers = [
+    handlers: list[logging.Handler] = [
         logging.StreamHandler(sys.stdout),
     ]
     if bot_settings.LOG_FILEPATH is not None:

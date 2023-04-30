@@ -28,4 +28,4 @@ class BotSettings(BaseSettings):
         env_file_encoding = "utf-8"
 
 
-bot_settings = BotSettings()
+bot_settings = BotSettings()  # pyright: ignore
