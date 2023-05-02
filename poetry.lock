@@ -350,14 +350,14 @@ files = [
 
 [[package]]
 name = "discord-py"
-version = "2.2.2"
+version = "2.2.3"
 description = "A Python wrapper for the Discord API"
 category = "main"
 optional = false
 python-versions = ">=3.8.0"
 files = [
-    {file = "discord.py-2.2.2-py3-none-any.whl", hash = "sha256:38fc52a784727b8e5e5749267089400035b187a009028eddfabeb182abcc6d52"},
-    {file = "discord.py-2.2.2.tar.gz", hash = "sha256:b9944056bcb5711b2d04088848fd004466cf117c15c84fa798bf55470f28275f"},
+    {file = "discord.py-2.2.3-py3-none-any.whl", hash = "sha256:792bdcfe71cfe013c446cf379b2e83e08b5050604322ad6fb592864e63511abd"},
+    {file = "discord.py-2.2.3.tar.gz", hash = "sha256:f9df95795c6f52c5db43b7ab43634993e12ef233288636a759166dd9c134d077"},
 ]
 
 [package.dependencies]
@@ -914,19 +914,15 @@ version = "0.0.0"
 description = "Python wrapper for the start.gg GraphQL API, built using ariadne-codegen"
 category = "main"
 optional = false
-python-versions = "^3.11"
-files = []
-develop = false
+python-versions = ">=3.11,<4.0"
+files = [
+    {file = "startgg-0.0.0-py3-none-any.whl", hash = "sha256:50279a68bd154632c065d12e75422274eff3cc601ad0a542b8c55b9528765bd3"},
+    {file = "startgg-0.0.0.tar.gz", hash = "sha256:41901c31fddd131c909c7b95b0eeb827ca4d582836b6891d58893a5a48f34833"},
+]
 
 [package.dependencies]
-httpx = "^0.24"
-pydantic = "^1.10"
-
-[package.source]
-type = "git"
-url = "https://github.com/LukeBotFanClub/startgg.git"
-reference = "main"
-resolved_reference = "110fff9d22cc91484f4ef04af5737415a8cfa81d"
+httpx = ">=0.24,<0.25"
+pydantic = ">=1.10,<2.0"
 
 [[package]]
 name = "tomli"
@@ -957,14 +953,14 @@ types-urllib3 = "<1.27"
 
 [[package]]
 name = "types-urllib3"
-version = "1.26.25.11"
+version = "1.26.25.12"
 description = "Typing stubs for urllib3"
 category = "dev"
 optional = false
 python-versions = "*"
 files = [
-    {file = "types-urllib3-1.26.25.11.tar.gz", hash = "sha256:697102ddf4f781eed6f692353f40cee1098643526f5a8b99f49d2ede90fd3754"},
-    {file = "types_urllib3-1.26.25.11-py3-none-any.whl", hash = "sha256:04235e792139cf3624b25d38faab593456738fbdb7439634046172e3b1339400"},
+    {file = "types-urllib3-1.26.25.12.tar.gz", hash = "sha256:a1557355ce8d350a555d142589f3001903757d2d36c18a66f588d9659bbc917d"},
+    {file = "types_urllib3-1.26.25.12-py3-none-any.whl", hash = "sha256:3ba3d3a8ee46e0d5512c6bd0594da4f10b2584b47a470f8422044a2ab462f1df"},
 ]
 
 [[package]]
@@ -1098,4 +1094,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "1b3cb611988233cbd1b5e91aef404aa66b4039264bdaed24aad15fe510830996"
+content-hash = "b8fe3a5f77d9befff159541e6b3fcdf9c6dc017650d58e510aa696ca83c11eb5"

@@ -1,16 +1,16 @@
 [build-system]
-requires = ["poetry_core>=1.0.0", "poetry-dynamic-versioning"]
-build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning[plugin]"]
+build-backend = "poetry_dynamic_versioning.backend"
 
 [tool.poetry-dynamic-versioning]
-enable = true
+enable = false
 vcs = "git"
-dirty = true
 metadata = true
+style = "semver"
 
 [tool.poetry]
 name = "luke_bot"
-version = "0.0.0"
+version = "0.3.0-post.18+30c39bc"
 authors = [
   "Exlot <author@example.com>" , "Charlie Wilson <charles.ep.wilson@gmail.com>",
 ]
@@ -31,7 +31,7 @@ python = "^3.11"
 python-dotenv = "^1.0.0"
 "discord.py" = "^2.0.1"
 pydantic = "^1.10"
-startgg = { git = "https://github.com/LukeBotFanClub/startgg.git", branch = "main" }
+startgg = "^0.0.0"
 
 [tool.poetry.group.dev]
 optional = true
