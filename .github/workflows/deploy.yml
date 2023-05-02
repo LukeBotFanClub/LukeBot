@@ -1,0 +1,32 @@
+name: Deploy
+
+on:
+  release:
+    types:
+      - created
+
+jobs:
+  publish:
+    runs-on: self-hosted
+    environment: Raspberry Pi
+    permissions:
+      packages: read
+    env:
+      CONTAINER_NAME: "lukebot"
+    steps:
+      - name: Remove old container
+        run: docker stop ${{ env.CONTAINER_NAME }} && docker rm ${{ env.CONTAINER_NAME }}
+      - name: Start container
+        run: >
+          docker run
+          -d
+          -e GG_TOKEN="${{ secrets.GG_TOKEN }}"
+          -e DISCORD_TOKEN="${{ secrets.DISCORD_TOKEN }}"
+          -e DISCORD_CHANNEL_ID="${{ vars.DISCORD_CHANNEL_ID }}"
+          -e GG_PLAYER_ID="${{ vars.GG_PLAYER_ID }}"
+          -e PLAYER_NAME="${{ vars.PLAYER_NAME }}"
+          -e DEPLOYED_ENVIRONMENT="${{ vars.DEPLOYED_ENVIRONMENT }}"
+          -e LOG_FILEPATH="/logs.txt"
+          --restart=on-failure
+          --name ${{ env.CONTAINER_NAME }}
+          "ghcr.io/lukebotfanclub/lukebot:${{ github.ref_name }}"

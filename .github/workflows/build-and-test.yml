@@ -1,6 +1,7 @@
 name: Build and Test
 
-on: [push]
+on:
+  push
 
 env:
   REGISTRY: ghcr.io
@@ -12,16 +13,17 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       packages: read
+    environment: test
     container:
       image: "ghcr.io/lukebotfanclub/poetry-python:3.11"
       env:
         GG_TOKEN: ${{ secrets.GG_TOKEN }}
-        DISCORD_TOKEN: ${{ secrets.TEST_DISCORD_TOKEN }}
-        DISCORD_CHANNEL_ID: ${{ secrets.TEST_DISCORD_CHANNEL_ID }}
-        DISCORD_TESTER_TOKEN: ${{ secrets.TEST_DISCORD_TESTER_TOKEN }}
-        GG_PLAYER_ID: 1116942
-        PLAYER_NAME: Luke
-        DEPLOYED_ENVIRONMENT: test
+        DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+        DISCORD_CHANNEL_ID: ${{ vars.DISCORD_CHANNEL_ID }}
+        DISCORD_TESTER_TOKEN: ${{ secrets.DISCORD_TESTER_TOKEN }}
+        GG_PLAYER_ID: ${{ vars.GG_PLAYER_ID }}
+        PLAYER_NAME: ${{ vars.PLAYER_NAME }}
+        DEPLOYED_ENVIRONMENT: ${{ vars.DEPLOYED_ENVIRONMENT }}
         LOG_FILEPATH: /logs.txt
 
     steps:
