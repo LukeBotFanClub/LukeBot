@@ -14,18 +14,18 @@ PLAYER_NAME: str = bot_settings.PLAYER_NAME
 HELP_TEXT = f"I report updates on {PLAYER_NAME} by polling the start.gg API."
 
 
-def same_update(update1: str, update2: str) -> bool:
+def same_update(old_update: str, new_update: str) -> bool:
     """Checks if 2 blocks of update text contain the same information."""
 
     def clean(update: str) -> list[str]:
         return update.strip().splitlines()
 
-    lines1 = clean(update1)
-    lines2 = clean(update2)
-    if len(lines1) != len(lines2):
+    old_lines = clean(old_update)
+    new_lines = clean(new_update)
+    if len(old_lines) != len(new_lines):
         # Different number of lines means definitely different
         return False
-    for line1, line2 in zip(lines1, lines2, strict=True):
+    for line1, line2 in zip(old_lines, new_lines, strict=True):
         # Loop through corresponding lines, skipping the ones with relative time in them
         if line1.startswith(("Begins in", "Started")):
             continue
@@ -129,9 +129,7 @@ class LukeBot(commands.Bot):
         text = await check_luke()
         if text:
             self.refresh_updates_channel()
-            if self.luke_updates_channel is not None and not same_update(
-                text, self.most_recent_update
-            ):
+            if self.luke_updates_channel is not None and not same_update(text, self.most_recent_update):
                 self.most_recent_update = text
                 embed = Embed()
                 embed.description = self.most_recent_update
