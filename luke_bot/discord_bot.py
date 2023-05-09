@@ -129,7 +129,9 @@ class LukeBot(commands.Bot):
         text = await check_luke()
         if text:
             self.refresh_updates_channel()
-            if self.luke_updates_channel is not None and not same_update(text, self.most_recent_update):
+            if self.luke_updates_channel is not None and not same_update(
+                text, self.most_recent_update
+            ):
                 self.most_recent_update = text
                 embed = Embed()
                 embed.description = self.most_recent_update
