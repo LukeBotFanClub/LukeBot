@@ -6,7 +6,8 @@ A Discord bot to poll the start.gg API for the results of a given player (origin
 and post them to an given text channel.
 
 Start the bot with `python3 -m luke_bot`
-However, the recommended deployment method is using the Docker image at `ghcr.io/tolxe/lukebot`
+However, the recommended deployment method is using the Docker image:
+`docker pull ghcr.io/lukebotfanclub/lukebot:latest`
 
 The following environment variables need to be set for the bot to run:
 

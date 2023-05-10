@@ -1,37 +1,31 @@
-import os
 import logging
-import dataclasses
 from typing import Literal
 
-from dotenv import load_dotenv
+from pydantic import BaseSettings, SecretStr
 
-load_dotenv()
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
-@dataclasses.dataclass
-class Settings:
-    """Defines the environment variables required to run the bot"""
-    GG_TOKEN: str
+class BotSettings(BaseSettings):
+    """Defines the environment variables required to run the bot."""
+
+    GG_TOKEN: SecretStr
     GG_PLAYER_ID: int
     PLAYER_NAME: str
-    DISCORD_TOKEN: str
+    DISCORD_TOKEN: SecretStr
     DISCORD_CHANNEL_ID: int
     DEPLOYED_ENVIRONMENT: Literal["dev", "test", "prod"]
     BOT_POLLING_PERIOD: int = 30
     DEFAULT_GAME_ID: int = 1386
+    # DEFAULT GAME IS SMASH ULTIMATE
+    LOG_FILEPATH: str | None = None
+    LOG_LEVEL: int | Literal[
+        "CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"
+    ] = logging.DEBUG
 
-    @classmethod
-    def from_environment(cls):
-        logger.info('Checking environment variables...')
-        settings_ = cls(
-            **{
-                f.name: os.getenv(f.name) for f in dataclasses.fields(cls)
-                if os.getenv(f.name) is not None
-            }
-            )
-        logger.info('Environment variables validated')
-        return settings_
+    class Config:
+        env_file = ".env"
+        env_file_encoding = "utf-8"
 
 
-settings = Settings.from_environment()
+bot_settings = BotSettings()  # pyright: ignore
