@@ -15,7 +15,7 @@ jobs:
       CONTAINER_NAME: "lukebot"
     steps:
       - name: Remove old container
-        run: docker stop ${{ env.CONTAINER_NAME }} && docker rm ${{ env.CONTAINER_NAME }}
+        run: (docker stop ${{ env.CONTAINER_NAME }} && docker rm ${{ env.CONTAINER_NAME }}) || true
       - name: Start container
         run: >
           docker run
